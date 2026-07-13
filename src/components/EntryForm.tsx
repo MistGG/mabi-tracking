@@ -77,6 +77,21 @@ export function EntryForm({ onAdd, draftItem = null, entries }: Props) {
   const retrack = useMemo(() => getLastTrackedDayGoods(entries), [entries])
 
   useEffect(() => {
+    const refreshStaleDate = () => {
+      setDate((current) => (current < todayIso() ? todayIso() : current))
+    }
+    const onVisibility = () => {
+      if (document.visibilityState === 'visible') refreshStaleDate()
+    }
+    window.addEventListener('focus', refreshStaleDate)
+    document.addEventListener('visibilitychange', onVisibility)
+    return () => {
+      window.removeEventListener('focus', refreshStaleDate)
+      document.removeEventListener('visibilitychange', onVisibility)
+    }
+  }, [])
+
+  useEffect(() => {
     if (!draftItem) return
     setSelected({ title: draftItem.title, url: draftItem.url })
     setDraftImageUrl(draftItem.imageUrl)
