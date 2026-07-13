@@ -87,7 +87,7 @@ export function ExpenditurePanel({
               id="spend-comment"
               type="text"
               autoComplete="off"
-              placeholder="e.g. Dye ampule, repair bill"
+              placeholder="e.g. Dye ampule, passes"
               value={comment}
               onChange={(e) => setComment(e.target.value)}
             />

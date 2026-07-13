@@ -13,13 +13,13 @@ type Props = {
 
 function initialStartGold(): string {
   const saved = loadStartGold()
-  return saved != null ? formatGold(saved) : ''
+  return saved != null ? formatGold(saved) : '0'
 }
 
 export function GoldPickupPanel({ onApply }: Props) {
   const [minimized, setMinimized] = useState(loadGoldPickupMinimized)
   const [startGold, setStartGold] = useState(initialStartGold)
-  const [endGold, setEndGold] = useState('')
+  const [endGold, setEndGold] = useState('0')
   const [, setGoldDay] = useState(todayIso)
 
   useEffect(() => {
@@ -27,8 +27,8 @@ export function GoldPickupPanel({ onApply }: Props) {
       const today = todayIso()
       setGoldDay((prev) => {
         if (prev === today) return prev
-        setStartGold('')
-        setEndGold('')
+        setStartGold('0')
+        setEndGold('0')
         saveStartGold(null)
         return today
       })
@@ -66,14 +66,14 @@ export function GoldPickupPanel({ onApply }: Props) {
     if (!canApply || gained == null) return
     saveStartGold(endNum)
     setStartGold(formatGold(endNum))
-    setEndGold('')
+    setEndGold('0')
     setGoldDay(todayIso())
     onApply(gained)
   }
 
   function handleStartBlur() {
     if (!Number.isFinite(startNum) || startNum < 0) {
-      setStartGold('')
+      setStartGold('0')
       saveStartGold(null)
       return
     }
@@ -120,7 +120,6 @@ export function GoldPickupPanel({ onApply }: Props) {
                 type="text"
                 inputMode="decimal"
                 autoComplete="off"
-                placeholder="0"
                 value={startGold}
                 onChange={(e) => setStartGold(e.target.value)}
                 onBlur={handleStartBlur}
@@ -133,7 +132,6 @@ export function GoldPickupPanel({ onApply }: Props) {
                 type="text"
                 inputMode="decimal"
                 autoComplete="off"
-                placeholder="0"
                 value={endGold}
                 onChange={(e) => setEndGold(e.target.value)}
               />
