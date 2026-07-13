@@ -1,0 +1,65 @@
+:root {
+  --ink: #24332c;
+  --ink-soft: #4a5f54;
+  --moss: #3a7a5c;
+  --moss-deep: #2a5540;
+  --leaf: #5a9a72;
+  --gold: #c4a05a;
+  --gold-soft: #e8d5a3;
+  --mist: #dff0e6;
+  --fog: #e7f3ec;
+  --surface: #fffcf7;
+  --surface-strong: #ffffff;
+  --line: rgba(42, 85, 64, 0.22);
+  --danger: #9b3b32;
+  --shadow: 0 12px 32px rgba(36, 60, 48, 0.16);
+  --radius: 18px;
+  --font-display: 'Cormorant Garamond', 'Palatino Linotype', Palatino, serif;
+  --font-body: 'Figtree', 'Segoe UI', sans-serif;
+  font-family: var(--font-body);
+  color: var(--ink);
+  background: var(--fog);
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  min-height: 100%;
+}
+
+#root {
+  position: relative;
+  isolation: isolate;
+  min-height: 100%;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+}
+
+a {
+  color: var(--moss);
+}
+
+button,
+input {
+  font: inherit;
+}
+
+button {
+  cursor: pointer;
+}
+
+img {
+  display: block;
+  max-width: 100%;
+}
