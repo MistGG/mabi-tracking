@@ -1,6 +1,6 @@
 import type { IncomeEntry } from '../types'
 import { MARKET_TAX_RATE } from '../types'
-import { isUniqueValueItem } from './itemOverrides'
+import { isUniqueValueItem, shouldHideDeltas } from './itemOverrides'
 
 export function calcGross(pricePerUnit: number, quantity: number): number {
   return pricePerUnit * quantity
@@ -35,6 +35,11 @@ export function isSold(entry: IncomeEntry): boolean {
 /** Item value is unknown/variable, so it is not summed into money totals. */
 export function hasUniqueValue(entry: IncomeEntry): boolean {
   return isUniqueValueItem(entry.itemName)
+}
+
+/** Price varies per sale, so change-vs-last deltas are not shown. */
+export function hidesDeltas(entry: IncomeEntry): boolean {
+  return shouldHideDeltas(entry.itemName)
 }
 
 /** Only sold entries with a known value contribute to gross/net/tax totals. */

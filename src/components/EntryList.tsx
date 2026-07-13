@@ -1,5 +1,10 @@
 import type { IncomeEntry } from '../types'
-import { formatDisplayDate, formatGold, hasUniqueValue } from '../lib/finance'
+import {
+  formatDisplayDate,
+  formatGold,
+  hasUniqueValue,
+  hidesDeltas,
+} from '../lib/finance'
 import {
   buildDayGroups,
   deltaClass,
@@ -82,6 +87,7 @@ export function EntryList({
                 <tbody>
                   {group.entries.map((row) => {
                     const unique = hasUniqueValue(row.entry)
+                    const noDeltas = unique || hidesDeltas(row.entry)
                     const pending = !row.sold
                     return (
                       <tr
@@ -141,16 +147,16 @@ export function EntryList({
                         >
                           {unique ? '—' : formatGold(row.net)}
                         </td>
-                        <td className={deltaClass(unique ? null : row.priceDelta)}>
-                          {unique ? '—' : formatDelta(row.priceDelta)}
-                          {!unique && row.previous && (
+                        <td className={deltaClass(noDeltas ? null : row.priceDelta)}>
+                          {noDeltas ? '—' : formatDelta(row.priceDelta)}
+                          {!noDeltas && row.previous && (
                             <span className="delta-hint">
                               was {formatGold(row.previous.pricePerUnit)}
                             </span>
                           )}
                         </td>
-                        <td className={deltaClass(unique ? null : row.netDelta)}>
-                          {unique ? '—' : formatDelta(row.netDelta)}
+                        <td className={deltaClass(noDeltas ? null : row.netDelta)}>
+                          {noDeltas ? '—' : formatDelta(row.netDelta)}
                         </td>
                         <td onClick={(e) => e.stopPropagation()}>
                           <div className="row-actions">

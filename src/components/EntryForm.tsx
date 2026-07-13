@@ -10,6 +10,7 @@ import {
 } from '../lib/finance'
 import { getItemOverride } from '../lib/itemOverrides'
 import { getLastTrackedDayGoods } from '../lib/retrack'
+import { loadSoldByDefault, saveSoldByDefault } from '../lib/storage'
 import { fetchItemImage } from '../lib/wiki'
 import { ItemSearch } from './ItemSearch'
 import { RetrackList } from './RetrackList'
@@ -67,7 +68,7 @@ export function EntryForm({ onAdd, draftItem = null, entries }: Props) {
   const [price, setPrice] = useState('')
   const [quantity, setQuantity] = useState('1')
   const [date, setDate] = useState(todayIso())
-  const [soldByDefault, setSoldByDefault] = useState(true)
+  const [soldByDefault, setSoldByDefault] = useState(loadSoldByDefault)
   const [submitting, setSubmitting] = useState(false)
   const [formError, setFormError] = useState<string | null>(null)
 
@@ -301,7 +302,10 @@ export function EntryForm({ onAdd, draftItem = null, entries }: Props) {
         <input
           type="checkbox"
           checked={soldByDefault}
-          onChange={(e) => setSoldByDefault(e.target.checked)}
+          onChange={(e) => {
+            setSoldByDefault(e.target.checked)
+            saveSoldByDefault(e.target.checked)
+          }}
         />
         <span>
           Sold by default

@@ -9,6 +9,11 @@ export type ItemOverride = {
    * blank money columns and are left out of gross/net/tax totals.
    */
   uniqueValue?: boolean
+  /**
+   * Price varies per sale, so change-vs-last-sale deltas are meaningless.
+   * The Δ Unit / Δ Net columns render blank for these items.
+   */
+  hideDeltas?: boolean
 }
 
 const ITEM_OVERRIDES: Record<string, ItemOverride> = {
@@ -17,6 +22,7 @@ const ITEM_OVERRIDES: Record<string, ItemOverride> = {
     taxExempt: true,
     defaultPricePerUnit: 40000,
     defaultQuantity: 30,
+    hideDeltas: true,
   },
 }
 
@@ -26,4 +32,8 @@ export function getItemOverride(itemName: string): ItemOverride | undefined {
 
 export function isUniqueValueItem(itemName: string): boolean {
   return getItemOverride(itemName)?.uniqueValue === true
+}
+
+export function shouldHideDeltas(itemName: string): boolean {
+  return getItemOverride(itemName)?.hideDeltas === true
 }

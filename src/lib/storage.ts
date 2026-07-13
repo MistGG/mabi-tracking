@@ -1,5 +1,5 @@
 import type { IncomeEntry } from '../types'
-import { STORAGE_KEY } from '../types'
+import { SOLD_BY_DEFAULT_KEY, STORAGE_KEY } from '../types'
 
 export function loadEntries(): IncomeEntry[] {
   try {
@@ -15,6 +15,24 @@ export function loadEntries(): IncomeEntry[] {
 
 export function saveEntries(entries: IncomeEntry[]): void {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(entries))
+}
+
+export function loadSoldByDefault(): boolean {
+  try {
+    const raw = localStorage.getItem(SOLD_BY_DEFAULT_KEY)
+    if (raw === null) return true
+    return raw === 'true'
+  } catch {
+    return true
+  }
+}
+
+export function saveSoldByDefault(value: boolean): void {
+  try {
+    localStorage.setItem(SOLD_BY_DEFAULT_KEY, String(value))
+  } catch {
+    // ignore write failures (e.g. storage disabled)
+  }
 }
 
 function isValidEntry(value: unknown): value is IncomeEntry {
