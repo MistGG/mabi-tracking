@@ -1,11 +1,14 @@
 import type { IncomeEntry } from '../types'
-import { entryGross, entryNet } from './finance'
+import { entryCountsTowardTotals, entryGross, entryNet, isSold } from './finance'
 
 export type EntryWithDelta = {
   entry: IncomeEntry
   gross: number
   net: number
   tax: number
+  sold: boolean
+  /** Whether this row is summed into the day/overall totals. */
+  counts: boolean
   /** Prior sale of the same item (any earlier day/time), if any */
   previous: IncomeEntry | null
   priceDelta: number | null
@@ -45,6 +48,8 @@ export function buildDayGroups(entries: IncomeEntry[]): DayGroup[] {
       gross,
       net,
       tax,
+      sold: isSold(entry),
+      counts: entryCountsTowardTotals(entry),
       previous,
       priceDelta: previous
         ? entry.pricePerUnit - previous.pricePerUnit
@@ -68,8 +73,14 @@ export function buildDayGroups(entries: IncomeEntry[]): DayGroup[] {
       const sorted = [...dayEntries].sort(
         (a, b) => b.entry.createdAt - a.entry.createdAt,
       )
-      const dayGross = sorted.reduce((sum, r) => sum + r.gross, 0)
-      const dayNet = sorted.reduce((sum, r) => sum + r.net, 0)
+      const dayGross = sorted.reduce(
+        (sum, r) => (r.counts ? sum + r.gross : sum),
+        0,
+      )
+      const dayNet = sorted.reduce(
+        (sum, r) => (r.counts ? sum + r.net : sum),
+        0,
+      )
       return {
         date,
         entries: sorted,

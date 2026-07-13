@@ -9,6 +9,11 @@ export type IncomeEntry = {
   createdAt: number
   /** When true, market tax is not applied (e.g. cash shop / gift items). */
   taxExempt?: boolean
+  /**
+   * Whether the sale has completed. Only sold entries count toward totals.
+   * Missing (undefined) is treated as sold for backwards compatibility.
+   */
+  sold?: boolean
 }
 
 export type WikiSearchResult = {

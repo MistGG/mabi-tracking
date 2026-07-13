@@ -8,9 +8,34 @@ import type { DraftItem } from './types'
 import './App.css'
 
 export default function App() {
-  const { entries, addEntry, removeEntry, clearAll, totals, dailyProfits } =
-    useIncomeStore()
+  const {
+    entries,
+    addEntry,
+    removeEntry,
+    updateEntry,
+    clearAll,
+    totals,
+    dailyProfits,
+  } = useIncomeStore()
   const [draftItem, setDraftItem] = useState<DraftItem | null>(null)
+
+  function draftFromEntry(entry: (typeof entries)[number]): DraftItem {
+    return {
+      title: entry.itemName,
+      url: entry.wikiUrl,
+      imageUrl: entry.imageUrl,
+      pricePerUnit: entry.pricePerUnit,
+      quantity: entry.quantity,
+      taxExempt: entry.taxExempt,
+    }
+  }
+
+  function focusForm() {
+    document.getElementById('log-sale')?.scrollIntoView({
+      behavior: 'smooth',
+      block: 'start',
+    })
+  }
 
   return (
     <>
@@ -54,18 +79,14 @@ export default function App() {
           entries={entries}
           onRemove={removeEntry}
           onSelectItem={(entry) => {
-            setDraftItem({
-              title: entry.itemName,
-              url: entry.wikiUrl,
-              imageUrl: entry.imageUrl,
-              pricePerUnit: entry.pricePerUnit,
-              quantity: entry.quantity,
-              taxExempt: entry.taxExempt,
-            })
-            document.getElementById('log-sale')?.scrollIntoView({
-              behavior: 'smooth',
-              block: 'start',
-            })
+            setDraftItem(draftFromEntry(entry))
+            focusForm()
+          }}
+          onToggleSold={(id, sold) => updateEntry(id, { sold })}
+          onRelist={(entry) => {
+            setDraftItem(draftFromEntry(entry))
+            removeEntry(entry.id)
+            focusForm()
           }}
         />
 

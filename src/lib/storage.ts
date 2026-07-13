@@ -28,6 +28,7 @@ function isValidEntry(value: unknown): value is IncomeEntry {
     typeof e.quantity === 'number' &&
     typeof e.date === 'string' &&
     typeof e.createdAt === 'number' &&
-    (e.taxExempt === undefined || typeof e.taxExempt === 'boolean')
+    (e.taxExempt === undefined || typeof e.taxExempt === 'boolean') &&
+    (e.sold === undefined || typeof e.sold === 'boolean')
   )
 }

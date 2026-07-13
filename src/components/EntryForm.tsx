@@ -22,6 +22,7 @@ type AddPayload = {
   quantity: number
   date: string
   taxExempt?: boolean
+  sold?: boolean
 }
 
 type FormMode = 'log' | 'retrack'
@@ -66,6 +67,7 @@ export function EntryForm({ onAdd, draftItem = null, entries }: Props) {
   const [price, setPrice] = useState('')
   const [quantity, setQuantity] = useState('1')
   const [date, setDate] = useState(todayIso())
+  const [soldByDefault, setSoldByDefault] = useState(true)
   const [submitting, setSubmitting] = useState(false)
   const [formError, setFormError] = useState<string | null>(null)
 
@@ -160,6 +162,7 @@ export function EntryForm({ onAdd, draftItem = null, entries }: Props) {
         quantity: qtyNum,
         date,
         taxExempt: exempt || undefined,
+        sold: soldByDefault,
       })
 
       setPrice('')
@@ -278,6 +281,22 @@ export function EntryForm({ onAdd, draftItem = null, entries }: Props) {
       )}
 
       {formError && <p className="field-error">{formError}</p>}
+
+      <label className="sold-default">
+        <input
+          type="checkbox"
+          checked={soldByDefault}
+          onChange={(e) => setSoldByDefault(e.target.checked)}
+        />
+        <span>
+          Sold by default
+          <span className="sold-default-hint">
+            {soldByDefault
+              ? 'Counts toward totals right away.'
+              : 'Added as pending — mark “Sold?” in the ledger to count it.'}
+          </span>
+        </span>
+      </label>
 
       <button className="btn primary" type="submit" disabled={submitting}>
         {submitting ? 'Adding…' : 'Add to ledger'}

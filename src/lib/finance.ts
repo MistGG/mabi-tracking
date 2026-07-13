@@ -1,5 +1,6 @@
 import type { IncomeEntry } from '../types'
 import { MARKET_TAX_RATE } from '../types'
+import { isUniqueValueItem } from './itemOverrides'
 
 export function calcGross(pricePerUnit: number, quantity: number): number {
   return pricePerUnit * quantity
@@ -24,6 +25,21 @@ export function entryTax(entry: IncomeEntry): number {
 
 export function entryNet(entry: IncomeEntry): number {
   return calcNet(entryGross(entry), entry.taxExempt === true)
+}
+
+/** Missing `sold` is treated as sold for backwards compatibility. */
+export function isSold(entry: IncomeEntry): boolean {
+  return entry.sold !== false
+}
+
+/** Item value is unknown/variable, so it is not summed into money totals. */
+export function hasUniqueValue(entry: IncomeEntry): boolean {
+  return isUniqueValueItem(entry.itemName)
+}
+
+/** Only sold entries with a known value contribute to gross/net/tax totals. */
+export function entryCountsTowardTotals(entry: IncomeEntry): boolean {
+  return isSold(entry) && !hasUniqueValue(entry)
 }
 
 export function formatGold(value: number): string {

@@ -1,6 +1,11 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import type { DailyProfit, IncomeEntry } from '../types'
-import { entryGross, entryNet, todayIso } from '../lib/finance'
+import {
+  entryCountsTowardTotals,
+  entryGross,
+  entryNet,
+  todayIso,
+} from '../lib/finance'
 import { loadEntries, saveEntries } from '../lib/storage'
 
 function createId(): string {
@@ -45,11 +50,12 @@ export function useIncomeStore() {
   }, [])
 
   const totals = useMemo(() => {
-    const gross = entries.reduce((sum, e) => sum + entryGross(e), 0)
-    const net = entries.reduce((sum, e) => sum + entryNet(e), 0)
+    const counted = entries.filter(entryCountsTowardTotals)
+    const gross = counted.reduce((sum, e) => sum + entryGross(e), 0)
+    const net = counted.reduce((sum, e) => sum + entryNet(e), 0)
     const tax = gross - net
     const today = todayIso()
-    const todayEntries = entries.filter((e) => e.date === today)
+    const todayEntries = counted.filter((e) => e.date === today)
     const todayGross = todayEntries.reduce((sum, e) => sum + entryGross(e), 0)
     const todayNet = todayEntries.reduce((sum, e) => sum + entryNet(e), 0)
     return {
@@ -66,6 +72,7 @@ export function useIncomeStore() {
   const dailyProfits: DailyProfit[] = useMemo(() => {
     const map = new Map<string, DailyProfit>()
     for (const entry of entries) {
+      if (!entryCountsTowardTotals(entry)) continue
       const existing = map.get(entry.date)
       const gross = entryGross(entry)
       const net = entryNet(entry)

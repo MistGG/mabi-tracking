@@ -514,6 +514,72 @@
   font-size: 0.8rem;
 }
 
+.row-actions {
+  display: flex;
+  gap: 0.35rem;
+  justify-content: flex-end;
+  white-space: nowrap;
+}
+
+.btn.ghost.sold-on {
+  border-color: var(--moss);
+  color: var(--moss);
+  background: #eef5f0;
+}
+
+.ledger-row-pending td {
+  color: var(--ink-soft);
+}
+
+.ledger-row-pending .item-name {
+  color: var(--ink-soft);
+}
+
+.net-pending {
+  font-weight: 500;
+  opacity: 0.7;
+}
+
+.money-blank {
+  color: var(--ink-soft);
+  text-align: left;
+}
+
+.pending-badge {
+  margin-left: 0.4rem;
+  padding: 0.05rem 0.4rem;
+  border-radius: 999px;
+  font-size: 0.66rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--gold);
+  border: 1px solid rgba(184, 134, 11, 0.35);
+}
+
+.sold-default {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.55rem;
+  margin: 0.25rem 0 0.9rem;
+  font-size: 0.9rem;
+  color: var(--ink);
+  cursor: pointer;
+}
+
+.sold-default input {
+  width: 1.05rem;
+  height: 1.05rem;
+  margin-top: 0.1rem;
+  accent-color: var(--moss);
+  flex-shrink: 0;
+}
+
+.sold-default-hint {
+  display: block;
+  font-size: 0.78rem;
+  color: var(--ink-soft);
+}
+
 .form-header-row {
   display: flex;
   align-items: flex-start;
