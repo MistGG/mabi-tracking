@@ -11,7 +11,10 @@ A Mabinogi-themed income ledger. Search items on the [Mabinogi World Wiki](https
 
 ## Live site
 
-After deploy: https://mistgg.github.io/mabi-tracking/
+https://mistgg.github.io/mabi-tracking/
+
+One-time setup: in [Pages settings](https://github.com/MistGG/mabi-tracking/settings/pages), set **Source** to **Deploy from a branch**, branch **gh-pages** / **/ (root)**, then Save.
+
 
 ## Develop
 
