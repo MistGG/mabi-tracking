@@ -1175,6 +1175,10 @@
   color: var(--moss-deep);
 }
 
+.gold-pickup-gained-row strong.gold-pickup-spent {
+  color: var(--danger);
+}
+
 .gold-pickup-gained-row .btn {
   flex-shrink: 0;
   padding: 0.35rem 0.65rem;

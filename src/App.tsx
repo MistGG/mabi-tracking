@@ -98,6 +98,7 @@ export default function App() {
           <div className="layout">
             <EntryForm
               onAdd={addEntry}
+              onAddExpenditure={addExpenditure}
               draftItem={draftItem}
               entries={entries}
             />

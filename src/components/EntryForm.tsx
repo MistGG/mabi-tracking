@@ -32,6 +32,11 @@ type FormMode = 'log' | 'retrack'
 
 type Props = {
   onAdd: (entry: AddPayload) => void
+  onAddExpenditure: (input: {
+    comment: string
+    amount: number
+    date: string
+  }) => void
   draftItem?: DraftItem | null
   entries: IncomeEntry[]
 }
@@ -62,7 +67,12 @@ function applyDraft(draft: DraftItem) {
   }
 }
 
-export function EntryForm({ onAdd, draftItem = null, entries }: Props) {
+export function EntryForm({
+  onAdd,
+  onAddExpenditure,
+  draftItem = null,
+  entries,
+}: Props) {
   const [mode, setMode] = useState<FormMode>('log')
   const [selected, setSelected] = useState<WikiSearchResult | null>(null)
   const [draftImageUrl, setDraftImageUrl] = useState<string | undefined>()
@@ -137,6 +147,14 @@ export function EntryForm({ onAdd, draftItem = null, entries }: Props) {
     setMode('log')
     const priceInput = document.getElementById('price')
     priceInput?.focus()
+  }
+
+  function handleGoldSpend(spent: number) {
+    onAddExpenditure({
+      comment: 'Gold',
+      amount: Math.round(spent),
+      date: todayIso(),
+    })
   }
 
   function handleRetrackPick(entry: IncomeEntry) {
@@ -258,7 +276,10 @@ export function EntryForm({ onAdd, draftItem = null, entries }: Props) {
         />
       ) : (
         <>
-          <GoldPickupPanel onApply={handleGoldPickup} />
+          <GoldPickupPanel
+            onGain={handleGoldPickup}
+            onSpend={handleGoldSpend}
+          />
           <ItemSearch
             selectedTitle={selected?.title}
             onSelect={handleSelect}
