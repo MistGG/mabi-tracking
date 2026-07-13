@@ -20,7 +20,7 @@ export function GoldPickupPanel({ onApply }: Props) {
   const [minimized, setMinimized] = useState(loadGoldPickupMinimized)
   const [startGold, setStartGold] = useState(initialStartGold)
   const [endGold, setEndGold] = useState('')
-  const [goldDay, setGoldDay] = useState(todayIso)
+  const [, setGoldDay] = useState(todayIso)
 
   useEffect(() => {
     const refreshForNewDay = () => {
