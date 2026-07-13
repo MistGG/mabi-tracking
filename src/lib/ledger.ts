@@ -1,5 +1,11 @@
 import type { IncomeEntry } from '../types'
-import { entryCountsTowardTotals, entryGross, entryNet, isSold } from './finance'
+import {
+  entryCountsTowardTotals,
+  entryGross,
+  entryNet,
+  entryNetPerUnit,
+  isSold,
+} from './finance'
 
 export type EntryWithDelta = {
   entry: IncomeEntry
@@ -54,7 +60,10 @@ export function buildDayGroups(entries: IncomeEntry[]): DayGroup[] {
       priceDelta: previous
         ? entry.pricePerUnit - previous.pricePerUnit
         : null,
-      netDelta: previous ? net - entryNet(previous) : null,
+      // Per-unit so quantity differences don't skew the delta.
+      netDelta: previous
+        ? entryNetPerUnit(entry) - entryNetPerUnit(previous)
+        : null,
     })
 
     lastByItem.set(key, entry)

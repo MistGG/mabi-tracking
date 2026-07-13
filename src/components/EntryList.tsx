@@ -111,8 +111,15 @@ export function EntryList({
                     <th scope="col">Unit</th>
                     <th scope="col">Gross</th>
                     <th scope="col">Net</th>
-                    <th scope="col">Δ Unit</th>
-                    <th scope="col">Δ Net</th>
+                    <th scope="col" title="Change in unit price vs last sale">
+                      Δ Unit
+                    </th>
+                    <th
+                      scope="col"
+                      title="Change in net per unit vs last sale"
+                    >
+                      Δ Net/u
+                    </th>
                     <th scope="col">
                       <span className="sr-only">Actions</span>
                     </th>

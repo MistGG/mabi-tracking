@@ -27,6 +27,12 @@ export function entryNet(entry: IncomeEntry): number {
   return calcNet(entryGross(entry), entry.taxExempt === true)
 }
 
+/** Net gold per unit for price-change comparisons across different quantities. */
+export function entryNetPerUnit(entry: IncomeEntry): number {
+  if (entry.quantity === 0) return 0
+  return entryNet(entry) / entry.quantity
+}
+
 /** Missing `sold` is treated as sold for backwards compatibility. */
 export function isSold(entry: IncomeEntry): boolean {
   return entry.sold !== false
