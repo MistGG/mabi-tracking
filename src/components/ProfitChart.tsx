@@ -1,3 +1,4 @@
+import { useEffect, useMemo, useState } from 'react'
 import {
   Area,
   AreaChart,
@@ -8,45 +9,89 @@ import {
   YAxis,
 } from 'recharts'
 import type { DailyProfit } from '../types'
-import { formatDisplayDate, formatGold } from '../lib/finance'
+import { formatDisplayDate, formatGold, formatWeekday } from '../lib/finance'
+import { buildProfitWeeks, defaultWeekId } from '../lib/weeks'
 
 type Props = {
   data: DailyProfit[]
 }
 
 export function ProfitChart({ data }: Props) {
-  const chartData = data.map((d) => ({
-    ...d,
-    label: formatDisplayDate(d.date),
-  }))
+  const weeks = useMemo(() => buildProfitWeeks(data), [data])
+  const [weekId, setWeekId] = useState(() => defaultWeekId(weeks))
+
+  useEffect(() => {
+    if (!weeks.some((w) => w.id === weekId)) {
+      setWeekId(defaultWeekId(weeks))
+    }
+  }, [weeks, weekId])
+
+  const selected = weeks.find((w) => w.id === weekId) ?? weeks[0]
+  const chartData =
+    selected?.days.map((d) => ({
+      ...d,
+      label: formatWeekday(d.date),
+      fullLabel: formatDisplayDate(d.date),
+    })) ?? []
+
+  const hasAnySales = data.some((d) => d.entryCount > 0)
 
   return (
     <section className="panel chart-panel">
-      <header className="panel-header">
-        <h2>Daily profit</h2>
-        <p>Net gold after 4% market tax, grouped by day.</p>
+      <header className="panel-header form-header-row">
+        <div>
+          <h2>Daily profit</h2>
+        </div>
+        {weeks.length > 0 && (
+          <label className="week-select">
+            <span className="sr-only">Week</span>
+            <select
+              value={selected?.id ?? ''}
+              onChange={(e) => setWeekId(e.target.value)}
+              aria-label="Select profit week"
+            >
+              {weeks.map((week) => (
+                <option key={week.id} value={week.id}>
+                  {week.label}
+                  {week.weekNet > 0 ? ` · ${formatGold(week.weekNet)}` : ''}
+                </option>
+              ))}
+            </select>
+          </label>
+        )}
       </header>
 
-      {chartData.length === 0 ? (
+      {!hasAnySales ? (
         <div className="chart-empty">
           <p>Add sales to see your daily profit curve.</p>
         </div>
       ) : (
         <div className="chart-wrap">
           <ResponsiveContainer width="100%" height={280}>
-            <AreaChart data={chartData} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
+            <AreaChart
+              data={chartData}
+              margin={{ top: 8, right: 8, left: 0, bottom: 0 }}
+            >
               <defs>
                 <linearGradient id="netFill" x1="0" y1="0" x2="0" y2="1">
                   <stop offset="0%" stopColor="#2f6b4f" stopOpacity={0.45} />
-                  <stop offset="100%" stopColor="#2f6b4f" stopOpacity={0.02} />
+                  <stop
+                    offset="100%"
+                    stopColor="#2f6b4f"
+                    stopOpacity={0.02}
+                  />
                 </linearGradient>
               </defs>
-              <CartesianGrid stroke="rgba(30, 45, 38, 0.08)" vertical={false} />
+              <CartesianGrid
+                stroke="rgba(30, 45, 38, 0.08)"
+                vertical={false}
+              />
               <XAxis
                 dataKey="label"
                 tick={{ fill: '#3d5248', fontSize: 12 }}
                 axisLine={false}
                 tickLine={false}
+                interval={0}
               />
               <YAxis
                 tick={{ fill: '#3d5248', fontSize: 12 }}
@@ -68,7 +113,10 @@ export function ProfitChart({ data }: Props) {
                   `${formatGold(Number(value ?? 0))} gold`,
                   'Net',
                 ]}
-                labelFormatter={(label) => String(label)}
+                labelFormatter={(_label, payload) => {
+                  const full = payload?.[0]?.payload?.fullLabel
+                  return full ? String(full) : String(_label)
+                }}
               />
               <Area
                 type="monotone"

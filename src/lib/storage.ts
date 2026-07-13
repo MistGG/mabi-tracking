@@ -1,5 +1,10 @@
 import type { IncomeEntry } from '../types'
-import { SOLD_BY_DEFAULT_KEY, STORAGE_KEY } from '../types'
+import {
+  GOAL_AMOUNT_KEY,
+  GOAL_MINIMIZED_KEY,
+  SOLD_BY_DEFAULT_KEY,
+  STORAGE_KEY,
+} from '../types'
 
 export function loadEntries(): IncomeEntry[] {
   try {
@@ -32,6 +37,47 @@ export function saveSoldByDefault(value: boolean): void {
     localStorage.setItem(SOLD_BY_DEFAULT_KEY, String(value))
   } catch {
     // ignore write failures (e.g. storage disabled)
+  }
+}
+
+export function loadGoalAmount(): number | null {
+  try {
+    const raw = localStorage.getItem(GOAL_AMOUNT_KEY)
+    if (raw === null || raw === '') return null
+    const n = Number(raw)
+    return Number.isFinite(n) && n > 0 ? n : null
+  } catch {
+    return null
+  }
+}
+
+export function saveGoalAmount(value: number | null): void {
+  try {
+    if (value == null || !Number.isFinite(value) || value <= 0) {
+      localStorage.removeItem(GOAL_AMOUNT_KEY)
+      return
+    }
+    localStorage.setItem(GOAL_AMOUNT_KEY, String(Math.round(value)))
+  } catch {
+    // ignore write failures
+  }
+}
+
+export function loadGoalMinimized(): boolean {
+  try {
+    const raw = localStorage.getItem(GOAL_MINIMIZED_KEY)
+    if (raw === null) return false
+    return raw === 'true'
+  } catch {
+    return false
+  }
+}
+
+export function saveGoalMinimized(value: boolean): void {
+  try {
+    localStorage.setItem(GOAL_MINIMIZED_KEY, String(value))
+  } catch {
+    // ignore write failures
   }
 }
 

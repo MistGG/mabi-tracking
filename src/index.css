@@ -16,6 +16,7 @@
   --radius: 18px;
   --font-display: 'Cormorant Garamond', 'Palatino Linotype', Palatino, serif;
   --font-body: 'Figtree', 'Segoe UI', sans-serif;
+  --font-num: 'Figtree', 'Segoe UI', system-ui, sans-serif;
   font-family: var(--font-body);
   color: var(--ink);
   background: var(--fog);

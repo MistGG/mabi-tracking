@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { EntryForm } from './components/EntryForm'
 import { EntryList } from './components/EntryList'
+import { GoalPanel } from './components/GoalPanel'
 import { ProfitChart } from './components/ProfitChart'
 import { SummaryBar } from './components/SummaryBar'
 import { useIncomeStore } from './hooks/useIncomeStore'
@@ -52,7 +53,6 @@ export default function App() {
       <div className="app">
         <header className="hero">
           <p className="brand">Mabi Tracker</p>
-          <h1>Income ledger for Erinn</h1>
         </header>
 
         <SummaryBar
@@ -65,6 +65,8 @@ export default function App() {
           count={totals.count}
           onClear={clearAll}
         />
+
+        <GoalPanel currentNet={totals.net} dailyProfits={dailyProfits} />
 
         <div className="layout">
           <EntryForm

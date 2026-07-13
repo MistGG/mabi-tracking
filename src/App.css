@@ -103,9 +103,11 @@
 }
 
 .stat-value {
-  font-family: var(--font-display);
-  font-size: clamp(1.8rem, 3vw, 2.4rem);
-  font-weight: 600;
+  font-family: var(--font-num);
+  font-variant-numeric: tabular-nums;
+  font-size: clamp(1.65rem, 2.8vw, 2.15rem);
+  font-weight: 700;
+  letter-spacing: -0.02em;
   line-height: 1;
 }
 
@@ -124,6 +126,162 @@
   grid-template-columns: 1.05fr 0.95fr;
   gap: 1.15rem;
   margin-bottom: 1.15rem;
+}
+
+.goal-panel {
+  margin-bottom: 1.15rem;
+}
+
+.goal-panel.goal-minimized {
+  padding-top: 0.95rem;
+  padding-bottom: 0.95rem;
+}
+
+.goal-panel.goal-minimized .panel-header {
+  margin-bottom: 0.55rem;
+}
+
+.goal-compact {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.goal-compact-main {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.35rem 1rem;
+}
+
+.goal-compact-main strong {
+  font-family: var(--font-num);
+  font-variant-numeric: tabular-nums;
+  font-size: 1.15rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--moss-deep);
+}
+
+.goal-compact-eta {
+  font-size: 0.9rem;
+  color: var(--ink-soft);
+}
+
+.goal-compact-empty {
+  margin: 0;
+  font-size: 0.9rem;
+  color: var(--ink-soft);
+}
+
+.goal-grid {
+  display: grid;
+  grid-template-columns: minmax(12rem, 0.9fr) repeat(3, 1fr);
+  gap: 0.85rem 1rem;
+  align-items: start;
+}
+
+.goal-grid .field {
+  margin-bottom: 0;
+}
+
+.goal-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  padding: 0.75rem 0.85rem;
+  border-radius: 12px;
+  background: #eef5f0;
+  border: 1px solid rgba(36, 92, 66, 0.16);
+  min-height: 5.5rem;
+}
+
+.goal-stat-label {
+  font-size: 0.72rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}
+
+.goal-stat-value {
+  font-family: var(--font-num);
+  font-variant-numeric: tabular-nums;
+  font-size: 1.2rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--moss-deep);
+  line-height: 1.15;
+}
+
+.goal-stat-of {
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--ink-soft);
+}
+
+.goal-stat-sub {
+  font-size: 0.78rem;
+  color: var(--ink-soft);
+}
+
+.goal-bar {
+  height: 0.45rem;
+  margin: 0.35rem 0 0.15rem;
+  border-radius: 999px;
+  background: rgba(36, 92, 66, 0.12);
+  overflow: hidden;
+}
+
+.goal-bar-fill {
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #245c42, #3f8f64);
+  transition: width 0.25s ease;
+}
+
+.goal-empty {
+  grid-column: 2 / -1;
+  display: grid;
+  place-items: center;
+  min-height: 5.5rem;
+  padding: 0.85rem;
+  border-radius: 12px;
+  border: 1px dashed var(--line);
+  color: var(--ink-soft);
+  text-align: center;
+  font-size: 0.9rem;
+}
+
+.week-select select {
+  border: 1px solid #9bb5a6;
+  border-radius: 999px;
+  background: #ffffff;
+  padding: 0.4rem 0.85rem;
+  color: var(--ink);
+  font-size: 0.82rem;
+  max-width: min(100%, 18rem);
+  outline: none;
+}
+
+.week-select select:focus {
+  border-color: var(--leaf);
+  box-shadow: 0 0 0 3px rgba(63, 143, 100, 0.18);
+}
+
+.week-summary {
+  margin: -0.35rem 0 0.65rem;
+  font-size: 0.9rem;
+  color: var(--ink-soft);
+}
+
+.week-summary strong {
+  font-family: var(--font-num);
+  font-variant-numeric: tabular-nums;
+  font-size: 1.1rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--moss);
 }
 
 .panel {
@@ -279,8 +437,11 @@
 }
 
 .tax-preview strong {
-  font-family: var(--font-display);
-  font-size: 1.25rem;
+  font-family: var(--font-num);
+  font-variant-numeric: tabular-nums;
+  font-size: 1.15rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
 }
 
 .tax-preview .net strong {
@@ -388,8 +549,11 @@
 }
 
 .day-group-totals strong {
-  font-family: var(--font-display);
-  font-size: 1.2rem;
+  font-family: var(--font-num);
+  font-variant-numeric: tabular-nums;
+  font-size: 1.1rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
   color: var(--moss);
 }
 
@@ -408,6 +572,7 @@
   border-collapse: collapse;
   font-size: 0.92rem;
   background: #ffffff;
+  font-variant-numeric: tabular-nums;
 }
 
 .ledger-table th,
@@ -484,7 +649,9 @@
 }
 
 .net-cell {
-  font-weight: 600;
+  font-family: var(--font-num);
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
   color: var(--moss);
 }
 
@@ -719,6 +886,14 @@
   .summary-bar,
   .layout {
     grid-template-columns: 1fr;
+  }
+
+  .goal-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .goal-empty {
+    grid-column: auto;
   }
 
   .form-grid,

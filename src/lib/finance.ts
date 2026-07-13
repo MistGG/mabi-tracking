@@ -75,3 +75,11 @@ export function formatDisplayDate(iso: string): string {
     day: 'numeric',
   })
 }
+
+/** Short weekday only, e.g. "Mon". */
+export function formatWeekday(iso: string): string {
+  const [y, m, d] = iso.split('-').map(Number)
+  return new Date(y, m - 1, d).toLocaleDateString('en-US', {
+    weekday: 'short',
+  })
+}

@@ -312,7 +312,7 @@ export function EntryForm({ onAdd, draftItem = null, entries }: Props) {
           <span className="sold-default-hint">
             {soldByDefault
               ? 'Counts toward totals right away.'
-              : 'Added as pending — mark “Sold?” in the ledger to count it.'}
+              : 'Added as pending. Mark “Sold?” in the ledger to count it.'}
           </span>
         </span>
       </label>
