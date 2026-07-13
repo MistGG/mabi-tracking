@@ -1,6 +1,7 @@
 import { useEffect, useState, type FormEvent } from 'react'
 import type { WikiSearchResult } from '../types'
 import { calcGross, calcNet, calcTax, formatGold, todayIso } from '../lib/finance'
+import { getItemOverride } from '../lib/itemOverrides'
 import { fetchItemImage } from '../lib/wiki'
 import { ItemSearch } from './ItemSearch'
 
@@ -11,11 +12,26 @@ type AddPayload = {
   pricePerUnit: number
   quantity: number
   date: string
+  taxExempt?: boolean
 }
 
 type Props = {
   onAdd: (entry: AddPayload) => void
   draftItem?: WikiSearchResult | null
+}
+
+function applyItemDefaults(item: WikiSearchResult | null) {
+  const override = item ? getItemOverride(item.title) : undefined
+  return {
+    price:
+      override?.defaultPricePerUnit != null
+        ? String(override.defaultPricePerUnit)
+        : '',
+    quantity:
+      override?.defaultQuantity != null
+        ? String(override.defaultQuantity)
+        : '1',
+  }
 }
 
 export function EntryForm({ onAdd, draftItem = null }: Props) {
@@ -26,13 +42,27 @@ export function EntryForm({ onAdd, draftItem = null }: Props) {
   const [submitting, setSubmitting] = useState(false)
   const [formError, setFormError] = useState<string | null>(null)
 
+  const override = selected ? getItemOverride(selected.title) : undefined
+  const taxExempt = override?.taxExempt === true
+
   useEffect(() => {
     if (!draftItem) return
     setSelected(draftItem)
+    const defaults = applyItemDefaults(draftItem)
+    setPrice(defaults.price)
+    setQuantity(defaults.quantity)
     setFormError(null)
     const priceInput = document.getElementById('price')
     priceInput?.focus()
   }, [draftItem])
+
+  function handleSelect(item: WikiSearchResult) {
+    setSelected(item)
+    const defaults = applyItemDefaults(item)
+    setPrice(defaults.price)
+    setQuantity(defaults.quantity)
+    setFormError(null)
+  }
 
   const priceNum = Number(price)
   const qtyNum = Number(quantity)
@@ -43,8 +73,8 @@ export function EntryForm({ onAdd, draftItem = null }: Props) {
     qtyNum > 0
 
   const gross = canPreview ? calcGross(priceNum, qtyNum) : 0
-  const tax = canPreview ? calcTax(gross) : 0
-  const net = canPreview ? calcNet(gross) : 0
+  const tax = canPreview ? calcTax(gross, taxExempt) : 0
+  const net = canPreview ? calcNet(gross, taxExempt) : 0
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault()
@@ -63,7 +93,11 @@ export function EntryForm({ onAdd, draftItem = null }: Props) {
     try {
       let imageUrl: string | undefined
       try {
-        imageUrl = await fetchItemImage(selected.title)
+        imageUrl = await fetchItemImage(
+          selected.title,
+          undefined,
+          override?.imageFile,
+        )
       } catch {
         imageUrl = undefined
       }
@@ -75,6 +109,7 @@ export function EntryForm({ onAdd, draftItem = null }: Props) {
         pricePerUnit: priceNum,
         quantity: qtyNum,
         date,
+        taxExempt: taxExempt || undefined,
       })
 
       setPrice('')
@@ -93,7 +128,7 @@ export function EntryForm({ onAdd, draftItem = null }: Props) {
 
       <ItemSearch
         selectedTitle={selected?.title}
-        onSelect={(item) => setSelected(item)}
+        onSelect={handleSelect}
       />
 
       <div className="form-grid">
@@ -140,8 +175,8 @@ export function EntryForm({ onAdd, draftItem = null }: Props) {
             <strong>{formatGold(gross)}</strong>
           </div>
           <div>
-            <span>Market tax (4%)</span>
-            <strong>−{formatGold(tax)}</strong>
+            <span>{taxExempt ? 'Market tax (exempt)' : 'Market tax (4%)'}</span>
+            <strong>{taxExempt ? formatGold(0) : `−${formatGold(tax)}`}</strong>
           </div>
           <div className="net">
             <span>Net profit</span>

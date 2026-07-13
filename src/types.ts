@@ -7,6 +7,8 @@ export type IncomeEntry = {
   quantity: number
   date: string
   createdAt: number
+  /** When true, market tax is not applied (e.g. cash shop / gift items). */
+  taxExempt?: boolean
 }
 
 export type WikiSearchResult = {

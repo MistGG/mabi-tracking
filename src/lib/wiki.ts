@@ -36,10 +36,45 @@ export async function searchWikiItems(
   }))
 }
 
+async function fetchFileUrl(
+  fileName: string,
+  signal?: AbortSignal,
+): Promise<string | undefined> {
+  const infoUrl = new URL(WIKI_API)
+  infoUrl.searchParams.set('action', 'query')
+  infoUrl.searchParams.set('titles', `File:${fileName}`)
+  infoUrl.searchParams.set('prop', 'imageinfo')
+  infoUrl.searchParams.set('iiprop', 'url')
+  infoUrl.searchParams.set('format', 'json')
+  infoUrl.searchParams.set('origin', '*')
+
+  const infoRes = await fetch(infoUrl.toString(), { signal })
+  if (!infoRes.ok) return undefined
+
+  const infoData = (await infoRes.json()) as {
+    query?: {
+      pages?: Record<
+        string,
+        { imageinfo?: Array<{ url?: string }> }
+      >
+    }
+  }
+
+  const pages = infoData.query?.pages ?? {}
+  const first = Object.values(pages)[0]
+  return first?.imageinfo?.[0]?.url
+}
+
 export async function fetchItemImage(
   title: string,
   signal?: AbortSignal,
+  preferredFile?: string,
 ): Promise<string | undefined> {
+  if (preferredFile) {
+    const overrideUrl = await fetchFileUrl(preferredFile, signal)
+    if (overrideUrl) return overrideUrl
+  }
+
   const parseUrl = new URL(WIKI_API)
   parseUrl.searchParams.set('action', 'parse')
   parseUrl.searchParams.set('page', title)
@@ -66,27 +101,5 @@ export async function fetchItemImage(
 
   if (!preferred) return undefined
 
-  const infoUrl = new URL(WIKI_API)
-  infoUrl.searchParams.set('action', 'query')
-  infoUrl.searchParams.set('titles', `File:${preferred}`)
-  infoUrl.searchParams.set('prop', 'imageinfo')
-  infoUrl.searchParams.set('iiprop', 'url')
-  infoUrl.searchParams.set('format', 'json')
-  infoUrl.searchParams.set('origin', '*')
-
-  const infoRes = await fetch(infoUrl.toString(), { signal })
-  if (!infoRes.ok) return undefined
-
-  const infoData = (await infoRes.json()) as {
-    query?: {
-      pages?: Record<
-        string,
-        { imageinfo?: Array<{ url?: string }> }
-      >
-    }
-  }
-
-  const pages = infoData.query?.pages ?? {}
-  const first = Object.values(pages)[0]
-  return first?.imageinfo?.[0]?.url
+  return fetchFileUrl(preferred, signal)
 }

@@ -5,20 +5,25 @@ export function calcGross(pricePerUnit: number, quantity: number): number {
   return pricePerUnit * quantity
 }
 
-export function calcTax(gross: number): number {
+export function calcTax(gross: number, taxExempt = false): number {
+  if (taxExempt) return 0
   return gross * MARKET_TAX_RATE
 }
 
-export function calcNet(gross: number): number {
-  return gross - calcTax(gross)
+export function calcNet(gross: number, taxExempt = false): number {
+  return gross - calcTax(gross, taxExempt)
 }
 
 export function entryGross(entry: IncomeEntry): number {
   return calcGross(entry.pricePerUnit, entry.quantity)
 }
 
+export function entryTax(entry: IncomeEntry): number {
+  return calcTax(entryGross(entry), entry.taxExempt === true)
+}
+
 export function entryNet(entry: IncomeEntry): number {
-  return calcNet(entryGross(entry))
+  return calcNet(entryGross(entry), entry.taxExempt === true)
 }
 
 export function formatGold(value: number): string {
