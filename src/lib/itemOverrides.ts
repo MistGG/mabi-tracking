@@ -17,7 +17,6 @@ const ITEM_OVERRIDES: Record<string, ItemOverride> = {
     taxExempt: true,
     defaultPricePerUnit: 40000,
     defaultQuantity: 30,
-    uniqueValue: true,
   },
 }
 
