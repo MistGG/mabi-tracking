@@ -10,12 +10,12 @@ export const HINT_ITEMS: Array<{
   {
     item: GOLD_ITEM,
     blurb:
-      'Cash/gold outside AH. Use Gold pickup, or enter manually. Tax exempt, no Δ Unit / Δ Net/u.',
+      'Cash/gold outside AH. Use Gold pickup, or enter manually. Tax exempt, no Δ Unit / Δ Net/unit.',
   },
   {
     item: FYNNI_ITEM,
     blurb:
-      'Fynni farming. Prefills 40,000 × 30, tax exempt, no Δ Unit / Δ Net/u.',
+      'Fynni farming. Prefills 40,000 × 30, tax exempt, no Δ Unit / Δ Net/unit.',
   },
 ]
 

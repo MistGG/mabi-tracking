@@ -118,7 +118,7 @@ export function EntryList({
                       scope="col"
                       title="Change in net per unit vs last sale"
                     >
-                      Δ Net/u
+                      Δ Net/unit
                     </th>
                     <th scope="col">
                       <span className="sr-only">Actions</span>

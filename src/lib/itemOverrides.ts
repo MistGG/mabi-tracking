@@ -13,7 +13,7 @@ export type ItemOverride = {
   uniqueValue?: boolean
   /**
    * Price varies per sale, so change-vs-last-sale deltas are meaningless.
-   * The Δ Unit / Δ Net/u columns render blank for these items.
+   * The Δ Unit / Δ Net/unit columns render blank for these items.
    */
   hideDeltas?: boolean
 }
