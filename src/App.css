@@ -217,6 +217,29 @@
   font-size: 0.95rem;
 }
 
+.load-more {
+  margin-top: 1rem;
+  padding-top: 0.9rem;
+  border-top: 1px dashed #9bb5a6;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.65rem 1rem;
+}
+
+.load-more-status {
+  margin: 0;
+  color: var(--ink-soft);
+  font-size: 0.88rem;
+}
+
+.load-more-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+}
+
 .expenditure-list {
   list-style: none;
   margin: 1rem 0 0;

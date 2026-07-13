@@ -1,4 +1,4 @@
-import { useEffect, useState, type FormEvent } from 'react'
+import { useEffect, useMemo, useState, type FormEvent } from 'react'
 import type { Expenditure } from '../types'
 import {
   formatDisplayDate,
@@ -6,6 +6,12 @@ import {
   parseNumberInput,
   todayIso,
 } from '../lib/finance'
+import {
+  INITIAL_VISIBLE_DAYS,
+  uniqueDatesDesc,
+  visibleDateSet,
+} from '../lib/dayWindow'
+import { LoadMoreDays } from './LoadMoreDays'
 
 type Props = {
   expenditures: Expenditure[]
@@ -22,6 +28,7 @@ export function ExpenditurePanel({
   const [amount, setAmount] = useState('')
   const [date, setDate] = useState(todayIso())
   const [error, setError] = useState<string | null>(null)
+  const [visibleDays, setVisibleDays] = useState(INITIAL_VISIBLE_DAYS)
 
   useEffect(() => {
     const refreshStaleDate = () => {
@@ -66,11 +73,30 @@ export function ExpenditurePanel({
     setError(null)
   }
 
-  const sorted = [...expenditures].sort((a, b) => {
-    const byDate = b.date.localeCompare(a.date)
-    if (byDate !== 0) return byDate
-    return b.createdAt - a.createdAt
-  })
+  const sorted = useMemo(
+    () =>
+      [...expenditures].sort((a, b) => {
+        const byDate = b.date.localeCompare(a.date)
+        if (byDate !== 0) return byDate
+        return b.createdAt - a.createdAt
+      }),
+    [expenditures],
+  )
+
+  const allDates = useMemo(
+    () => uniqueDatesDesc(sorted.map((item) => item.date)),
+    [sorted],
+  )
+  const totalDays = allDates.length
+  const shownDays = Math.min(visibleDays, totalDays)
+  const visibleDates = useMemo(
+    () => visibleDateSet(allDates, shownDays),
+    [allDates, shownDays],
+  )
+  const visibleItems = useMemo(
+    () => sorted.filter((item) => visibleDates.has(item.date)),
+    [sorted, visibleDates],
+  )
 
   return (
     <section className="panel expenditure-panel">
@@ -125,28 +151,36 @@ export function ExpenditurePanel({
       {sorted.length === 0 ? (
         <p className="expenditure-empty">No expenditures logged yet.</p>
       ) : (
-        <ul className="expenditure-list">
-          {sorted.map((item) => (
-            <li key={item.id} className="expenditure-row">
-              <div className="expenditure-row-main">
-                <strong>{item.comment}</strong>
-                <span className="expenditure-row-meta">
-                  {formatDisplayDate(item.date)}
-                </span>
-              </div>
-              <strong className="expenditure-amount">
-                −{formatGold(item.amount)}
-              </strong>
-              <button
-                type="button"
-                className="btn ghost compact danger"
-                onClick={() => onRemove(item.id)}
-              >
-                Remove
-              </button>
-            </li>
-          ))}
-        </ul>
+        <>
+          <ul className="expenditure-list">
+            {visibleItems.map((item) => (
+              <li key={item.id} className="expenditure-row">
+                <div className="expenditure-row-main">
+                  <strong>{item.comment}</strong>
+                  <span className="expenditure-row-meta">
+                    {formatDisplayDate(item.date)}
+                  </span>
+                </div>
+                <strong className="expenditure-amount">
+                  −{formatGold(item.amount)}
+                </strong>
+                <button
+                  type="button"
+                  className="btn ghost compact danger"
+                  onClick={() => onRemove(item.id)}
+                >
+                  Remove
+                </button>
+              </li>
+            ))}
+          </ul>
+
+          <LoadMoreDays
+            visibleDays={shownDays}
+            totalDays={totalDays}
+            onChange={setVisibleDays}
+          />
+        </>
       )}
     </section>
   )

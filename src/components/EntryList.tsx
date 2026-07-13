@@ -1,3 +1,4 @@
+import { useMemo, useState } from 'react'
 import type { IncomeEntry } from '../types'
 import {
   formatDisplayDate,
@@ -6,10 +7,16 @@ import {
   hidesDeltas,
 } from '../lib/finance'
 import {
+  INITIAL_VISIBLE_DAYS,
+  uniqueDatesDesc,
+  visibleDateSet,
+} from '../lib/dayWindow'
+import {
   buildDayGroups,
   deltaClass,
   formatDelta,
 } from '../lib/ledger'
+import { LoadMoreDays } from './LoadMoreDays'
 
 type Props = {
   entries: IncomeEntry[]
@@ -26,6 +33,24 @@ export function EntryList({
   onToggleSold,
   onRelist,
 }: Props) {
+  const [visibleDays, setVisibleDays] = useState(INITIAL_VISIBLE_DAYS)
+
+  const allGroups = useMemo(() => buildDayGroups(entries), [entries])
+  const allDates = useMemo(
+    () => uniqueDatesDesc(allGroups.map((g) => g.date)),
+    [allGroups],
+  )
+  const totalDays = allDates.length
+  const shownDays = Math.min(visibleDays, totalDays)
+  const visibleDates = useMemo(
+    () => visibleDateSet(allDates, shownDays),
+    [allDates, shownDays],
+  )
+  const groups = useMemo(
+    () => allGroups.filter((g) => visibleDates.has(g.date)),
+    [allGroups, visibleDates],
+  )
+
   if (entries.length === 0) {
     return (
       <section className="panel entry-list">
@@ -40,14 +65,13 @@ export function EntryList({
     )
   }
 
-  const groups = buildDayGroups(entries)
-
   return (
     <section className="panel entry-list">
       <header className="panel-header">
         <h2>Ledger</h2>
         <p>
-          {entries.length} sale{entries.length === 1 ? '' : 's'} by day · totals
+          {entries.length} sale{entries.length === 1 ? '' : 's'} by day ·
+          showing last {shownDays} day{shownDays === 1 ? '' : 's'} · totals
           count sold entries only
         </p>
       </header>
@@ -214,6 +238,12 @@ export function EntryList({
           </section>
         ))}
       </div>
+
+      <LoadMoreDays
+        visibleDays={shownDays}
+        totalDays={totalDays}
+        onChange={setVisibleDays}
+      />
     </section>
   )
 }
