@@ -31,6 +31,13 @@ export function formatGold(value: number): string {
   return rounded.toLocaleString('en-US')
 }
 
+/** Accepts digits with optional thousands commas, e.g. "40,000". */
+export function parseNumberInput(value: string): number {
+  const cleaned = value.replace(/,/g, '').trim()
+  if (cleaned === '') return NaN
+  return Number(cleaned)
+}
+
 export function todayIso(): string {
   const d = new Date()
   const y = d.getFullYear()

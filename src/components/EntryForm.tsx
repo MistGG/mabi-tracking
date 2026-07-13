@@ -1,9 +1,18 @@
-import { useEffect, useState, type FormEvent } from 'react'
-import type { WikiSearchResult } from '../types'
-import { calcGross, calcNet, calcTax, formatGold, todayIso } from '../lib/finance'
+import { useEffect, useMemo, useState, type FormEvent } from 'react'
+import type { DraftItem, IncomeEntry, WikiSearchResult } from '../types'
+import {
+  calcGross,
+  calcNet,
+  calcTax,
+  formatGold,
+  parseNumberInput,
+  todayIso,
+} from '../lib/finance'
 import { getItemOverride } from '../lib/itemOverrides'
+import { getLastTrackedDayGoods } from '../lib/retrack'
 import { fetchItemImage } from '../lib/wiki'
 import { ItemSearch } from './ItemSearch'
+import { RetrackList } from './RetrackList'
 
 type AddPayload = {
   itemName: string
@@ -15,9 +24,12 @@ type AddPayload = {
   taxExempt?: boolean
 }
 
+type FormMode = 'log' | 'retrack'
+
 type Props = {
   onAdd: (entry: AddPayload) => void
-  draftItem?: WikiSearchResult | null
+  draftItem?: DraftItem | null
+  entries: IncomeEntry[]
 }
 
 function applyItemDefaults(item: WikiSearchResult | null) {
@@ -25,17 +37,32 @@ function applyItemDefaults(item: WikiSearchResult | null) {
   return {
     price:
       override?.defaultPricePerUnit != null
-        ? String(override.defaultPricePerUnit)
+        ? formatGold(override.defaultPricePerUnit)
         : '',
     quantity:
       override?.defaultQuantity != null
-        ? String(override.defaultQuantity)
+        ? formatGold(override.defaultQuantity)
         : '1',
   }
 }
 
-export function EntryForm({ onAdd, draftItem = null }: Props) {
+function applyDraft(draft: DraftItem) {
+  const defaults = applyItemDefaults(draft)
+  return {
+    price:
+      draft.pricePerUnit != null
+        ? formatGold(draft.pricePerUnit)
+        : defaults.price,
+    quantity:
+      draft.quantity != null ? formatGold(draft.quantity) : defaults.quantity,
+  }
+}
+
+export function EntryForm({ onAdd, draftItem = null, entries }: Props) {
+  const [mode, setMode] = useState<FormMode>('log')
   const [selected, setSelected] = useState<WikiSearchResult | null>(null)
+  const [draftImageUrl, setDraftImageUrl] = useState<string | undefined>()
+  const [entryTaxExempt, setEntryTaxExempt] = useState(false)
   const [price, setPrice] = useState('')
   const [quantity, setQuantity] = useState('1')
   const [date, setDate] = useState(todayIso())
@@ -43,14 +70,18 @@ export function EntryForm({ onAdd, draftItem = null }: Props) {
   const [formError, setFormError] = useState<string | null>(null)
 
   const override = selected ? getItemOverride(selected.title) : undefined
-  const taxExempt = override?.taxExempt === true
+  const exempt = override?.taxExempt === true || entryTaxExempt
+
+  const retrack = useMemo(() => getLastTrackedDayGoods(entries), [entries])
 
   useEffect(() => {
     if (!draftItem) return
-    setSelected(draftItem)
-    const defaults = applyItemDefaults(draftItem)
-    setPrice(defaults.price)
-    setQuantity(defaults.quantity)
+    setSelected({ title: draftItem.title, url: draftItem.url })
+    setDraftImageUrl(draftItem.imageUrl)
+    setEntryTaxExempt(draftItem.taxExempt === true)
+    const values = applyDraft(draftItem)
+    setPrice(values.price)
+    setQuantity(values.quantity)
     setFormError(null)
     const priceInput = document.getElementById('price')
     priceInput?.focus()
@@ -58,14 +89,27 @@ export function EntryForm({ onAdd, draftItem = null }: Props) {
 
   function handleSelect(item: WikiSearchResult) {
     setSelected(item)
+    setDraftImageUrl(undefined)
+    setEntryTaxExempt(false)
     const defaults = applyItemDefaults(item)
     setPrice(defaults.price)
     setQuantity(defaults.quantity)
     setFormError(null)
   }
 
-  const priceNum = Number(price)
-  const qtyNum = Number(quantity)
+  function handleRetrackPick(entry: IncomeEntry) {
+    setSelected({ title: entry.itemName, url: entry.wikiUrl })
+    setDraftImageUrl(entry.imageUrl)
+    setEntryTaxExempt(entry.taxExempt === true)
+    setPrice(formatGold(entry.pricePerUnit))
+    setQuantity(formatGold(entry.quantity))
+    setFormError(null)
+    const priceInput = document.getElementById('price')
+    priceInput?.focus()
+  }
+
+  const priceNum = parseNumberInput(price)
+  const qtyNum = parseNumberInput(quantity)
   const canPreview =
     Number.isFinite(priceNum) &&
     priceNum > 0 &&
@@ -73,15 +117,19 @@ export function EntryForm({ onAdd, draftItem = null }: Props) {
     qtyNum > 0
 
   const gross = canPreview ? calcGross(priceNum, qtyNum) : 0
-  const tax = canPreview ? calcTax(gross, taxExempt) : 0
-  const net = canPreview ? calcNet(gross, taxExempt) : 0
+  const tax = canPreview ? calcTax(gross, exempt) : 0
+  const net = canPreview ? calcNet(gross, exempt) : 0
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault()
     setFormError(null)
 
     if (!selected) {
-      setFormError('Pick an item from the wiki search results.')
+      setFormError(
+        mode === 'retrack'
+          ? 'Pick an item from the retrack list.'
+          : 'Pick an item from the wiki search results.',
+      )
       return
     }
     if (!canPreview) {
@@ -91,15 +139,17 @@ export function EntryForm({ onAdd, draftItem = null }: Props) {
 
     setSubmitting(true)
     try {
-      let imageUrl: string | undefined
-      try {
-        imageUrl = await fetchItemImage(
-          selected.title,
-          undefined,
-          override?.imageFile,
-        )
-      } catch {
-        imageUrl = undefined
+      let imageUrl = draftImageUrl
+      if (!imageUrl) {
+        try {
+          imageUrl = await fetchItemImage(
+            selected.title,
+            undefined,
+            override?.imageFile,
+          )
+        } catch {
+          imageUrl = undefined
+        }
       }
 
       onAdd({
@@ -109,11 +159,12 @@ export function EntryForm({ onAdd, draftItem = null }: Props) {
         pricePerUnit: priceNum,
         quantity: qtyNum,
         date,
-        taxExempt: taxExempt || undefined,
+        taxExempt: exempt || undefined,
       })
 
       setPrice('')
       setQuantity('1')
+      setDraftImageUrl(undefined)
     } finally {
       setSubmitting(false)
     }
@@ -121,15 +172,56 @@ export function EntryForm({ onAdd, draftItem = null }: Props) {
 
   return (
     <form className="entry-form panel" onSubmit={handleSubmit} id="log-sale">
-      <header className="panel-header">
-        <h2>Log a sale</h2>
-        <p>Search the wiki, then enter unit price and amount sold.</p>
+      <header className="panel-header form-header-row">
+        <div>
+          <h2>{mode === 'retrack' ? 'Retrack' : 'Log a sale'}</h2>
+          <p>
+            {mode === 'retrack'
+              ? 'Reuse goods from your last tracked day.'
+              : 'Search the wiki, then enter unit price and amount sold.'}
+          </p>
+        </div>
+        <div className="mode-toggle" role="group" aria-label="Entry mode">
+          <button
+            type="button"
+            className={`btn ghost compact${mode === 'log' ? ' active' : ''}`}
+            aria-pressed={mode === 'log'}
+            onClick={() => setMode('log')}
+          >
+            Log
+          </button>
+          <button
+            type="button"
+            className={`btn ghost compact${mode === 'retrack' ? ' active' : ''}`}
+            aria-pressed={mode === 'retrack'}
+            onClick={() => setMode('retrack')}
+            disabled={!retrack}
+          >
+            Retrack
+          </button>
+        </div>
       </header>
 
-      <ItemSearch
-        selectedTitle={selected?.title}
-        onSelect={handleSelect}
-      />
+      {mode === 'retrack' && retrack ? (
+        <RetrackList
+          sourceDate={retrack.date}
+          items={retrack.items}
+          targetDate={date}
+          allEntries={entries}
+          onPick={handleRetrackPick}
+        />
+      ) : (
+        <ItemSearch
+          selectedTitle={selected?.title}
+          onSelect={handleSelect}
+        />
+      )}
+
+      {selected && mode === 'retrack' && (
+        <p className="retrack-selected">
+          Selected: <strong>{selected.title}</strong>
+        </p>
+      )}
 
       <div className="form-grid">
         <div className="field">
@@ -137,9 +229,8 @@ export function EntryForm({ onAdd, draftItem = null }: Props) {
           <input
             id="price"
             inputMode="decimal"
-            type="number"
-            min="0"
-            step="1"
+            type="text"
+            autoComplete="off"
             placeholder="0"
             value={price}
             onChange={(e) => setPrice(e.target.value)}
@@ -150,9 +241,8 @@ export function EntryForm({ onAdd, draftItem = null }: Props) {
           <input
             id="quantity"
             inputMode="numeric"
-            type="number"
-            min="1"
-            step="1"
+            type="text"
+            autoComplete="off"
             value={quantity}
             onChange={(e) => setQuantity(e.target.value)}
           />
@@ -175,8 +265,10 @@ export function EntryForm({ onAdd, draftItem = null }: Props) {
             <strong>{formatGold(gross)}</strong>
           </div>
           <div>
-            <span>{taxExempt ? 'Market tax (exempt)' : 'Market tax (4%)'}</span>
-            <strong>{taxExempt ? formatGold(0) : `−${formatGold(tax)}`}</strong>
+            <span>{exempt ? 'Market tax (exempt)' : 'Market tax (4%)'}</span>
+            <strong>
+              {exempt ? formatGold(0) : `−${formatGold(tax)}`}
+            </strong>
           </div>
           <div className="net">
             <span>Net profit</span>

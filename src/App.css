@@ -514,6 +514,118 @@
   font-size: 0.8rem;
 }
 
+.form-header-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem 1rem;
+}
+
+.mode-toggle {
+  display: inline-flex;
+  gap: 0.35rem;
+  flex-shrink: 0;
+}
+
+.mode-toggle .btn.active {
+  border-color: var(--moss);
+  color: var(--moss);
+  background: #eef5f0;
+}
+
+.retrack-panel {
+  margin-bottom: 0.9rem;
+}
+
+.retrack-hint {
+  margin: 0 0 0.65rem;
+  font-size: 0.9rem;
+  color: var(--ink-soft);
+}
+
+.retrack-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  max-height: 220px;
+  overflow: auto;
+}
+
+.retrack-item {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  border: 1px solid #9bb5a6;
+  border-radius: 12px;
+  background: #ffffff;
+  padding: 0.55rem 0.7rem;
+  text-align: left;
+  color: var(--ink);
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.retrack-item:hover,
+.retrack-item:focus-visible {
+  background: #f7faf6;
+  border-color: var(--moss);
+  outline: none;
+}
+
+.retrack-item.logged {
+  opacity: 0.72;
+}
+
+.retrack-item img,
+.retrack-item .item-fallback {
+  width: 32px;
+  height: 32px;
+}
+
+.retrack-item-body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  min-width: 0;
+  flex: 1;
+}
+
+.retrack-meta {
+  font-size: 0.82rem;
+  color: var(--ink-soft);
+}
+
+.retrack-badge {
+  flex-shrink: 0;
+  font-size: 0.68rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--gold);
+}
+
+.retrack-badge.logged {
+  color: var(--moss);
+}
+
+.retrack-selected {
+  margin: -0.35rem 0 0.75rem;
+  font-size: 0.9rem;
+  color: var(--ink-soft);
+}
+
+.retrack-empty {
+  margin-bottom: 0.9rem;
+  padding: 0.9rem;
+  border-radius: 12px;
+  border: 1px dashed var(--line);
+  color: var(--ink-soft);
+  text-align: center;
+  font-size: 0.9rem;
+}
+
 .sr-only {
   position: absolute;
   width: 1px;
@@ -546,5 +658,9 @@
   .form-grid,
   .tax-preview {
     grid-template-columns: 1fr;
+  }
+
+  .form-header-row {
+    flex-direction: column;
   }
 }

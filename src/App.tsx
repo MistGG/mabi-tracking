@@ -4,13 +4,13 @@ import { EntryList } from './components/EntryList'
 import { ProfitChart } from './components/ProfitChart'
 import { SummaryBar } from './components/SummaryBar'
 import { useIncomeStore } from './hooks/useIncomeStore'
-import type { WikiSearchResult } from './types'
+import type { DraftItem } from './types'
 import './App.css'
 
 export default function App() {
   const { entries, addEntry, removeEntry, clearAll, totals, dailyProfits } =
     useIncomeStore()
-  const [draftItem, setDraftItem] = useState<WikiSearchResult | null>(null)
+  const [draftItem, setDraftItem] = useState<DraftItem | null>(null)
 
   return (
     <>
@@ -42,7 +42,11 @@ export default function App() {
         />
 
         <div className="layout">
-          <EntryForm onAdd={addEntry} draftItem={draftItem} />
+          <EntryForm
+            onAdd={addEntry}
+            draftItem={draftItem}
+            entries={entries}
+          />
           <ProfitChart data={dailyProfits} />
         </div>
 
@@ -53,6 +57,10 @@ export default function App() {
             setDraftItem({
               title: entry.itemName,
               url: entry.wikiUrl,
+              imageUrl: entry.imageUrl,
+              pricePerUnit: entry.pricePerUnit,
+              quantity: entry.quantity,
+              taxExempt: entry.taxExempt,
             })
             document.getElementById('log-sale')?.scrollIntoView({
               behavior: 'smooth',

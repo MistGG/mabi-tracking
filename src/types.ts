@@ -16,6 +16,14 @@ export type WikiSearchResult = {
   url: string
 }
 
+/** Prefill for the sale form (ledger click or retrack). */
+export type DraftItem = WikiSearchResult & {
+  imageUrl?: string
+  pricePerUnit?: number
+  quantity?: number
+  taxExempt?: boolean
+}
+
 export type DailyProfit = {
   date: string
   gross: number
