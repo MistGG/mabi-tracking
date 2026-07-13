@@ -2,10 +2,12 @@ import { useState } from 'react'
 import { EntryForm } from './components/EntryForm'
 import { EntryList } from './components/EntryList'
 import { GoalPanel } from './components/GoalPanel'
+import { HintsPanel } from './components/HintsPanel'
 import { ProfitChart } from './components/ProfitChart'
 import { SummaryBar } from './components/SummaryBar'
 import { useIncomeStore } from './hooks/useIncomeStore'
-import type { DraftItem } from './types'
+import { getItemOverride } from './lib/itemOverrides'
+import type { DraftItem, WikiSearchResult } from './types'
 import './App.css'
 
 export default function App() {
@@ -28,6 +30,17 @@ export default function App() {
       pricePerUnit: entry.pricePerUnit,
       quantity: entry.quantity,
       taxExempt: entry.taxExempt,
+    }
+  }
+
+  function draftFromHint(item: WikiSearchResult): DraftItem {
+    const override = getItemOverride(item.title)
+    return {
+      title: item.title,
+      url: item.url,
+      taxExempt: override?.taxExempt,
+      pricePerUnit: override?.defaultPricePerUnit,
+      quantity: override?.defaultQuantity,
     }
   }
 
@@ -68,13 +81,21 @@ export default function App() {
 
         <GoalPanel currentNet={totals.net} dailyProfits={dailyProfits} />
 
-        <div className="layout">
-          <EntryForm
-            onAdd={addEntry}
-            draftItem={draftItem}
-            entries={entries}
+        <div className="layout-band">
+          <HintsPanel
+            onPick={(item) => {
+              setDraftItem(draftFromHint(item))
+              focusForm()
+            }}
           />
-          <ProfitChart data={dailyProfits} />
+          <div className="layout">
+            <EntryForm
+              onAdd={addEntry}
+              draftItem={draftItem}
+              entries={entries}
+            />
+            <ProfitChart data={dailyProfits} />
+          </div>
         </div>
 
         <EntryList

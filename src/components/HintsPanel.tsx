@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import type { WikiSearchResult } from '../types'
+import { FYNNI_ITEM, GOLD_ITEM } from '../lib/specialItems'
 import { loadHintsMinimized, saveHintsMinimized } from '../lib/storage'
 
 export const HINT_ITEMS: Array<{
@@ -7,25 +8,19 @@ export const HINT_ITEMS: Array<{
   blurb: string
 }> = [
   {
-    item: {
-      title: 'Gold',
-      url: 'https://wiki.mabinogiworld.com/view/Gold',
-    },
+    item: GOLD_ITEM,
     blurb:
-      'Log cash/gold gained outside the auction house. Tax exempt, no Δ Unit / Δ Net.',
+      'Cash/gold outside AH. Use Gold pickup, or enter manually. Tax exempt, no Δ Unit / Δ Net.',
   },
   {
-    item: {
-      title: 'Fynni Pet Whistle',
-      url: 'https://wiki.mabinogiworld.com/view/Fynni_Pet_Whistle',
-    },
+    item: FYNNI_ITEM,
     blurb:
-      'For Fynni Pet Whistle farming. Prefills 40,000 × 30, tax exempt, no Δ Unit / Δ Net.',
+      'Fynni farming. Prefills 40,000 × 30, tax exempt, no Δ Unit / Δ Net.',
   },
 ]
 
 const LEDGER_REFILL_TIP =
-  'Click an item name in the ledger to refill the log form so you can re-enter sales faster.'
+  'Click a ledger item name to refill the log form for faster re-entry.'
 
 type Props = {
   onPick: (item: WikiSearchResult) => void
@@ -43,12 +38,14 @@ export function HintsPanel({ onPick }: Props) {
   }
 
   return (
-    <section
-      className={`hints-panel${minimized ? ' hints-minimized' : ''}`}
+    <aside
+      className={`panel hints-panel hints-side${
+        minimized ? ' hints-minimized' : ''
+      }`}
       aria-label="Helpful tips"
     >
       <header className="hints-header">
-        <h3>Helpful Tips</h3>
+        <h3>Tips</h3>
         <button
           type="button"
           className="btn ghost compact"
@@ -56,46 +53,42 @@ export function HintsPanel({ onPick }: Props) {
           aria-expanded={!minimized}
           aria-controls="hints-body"
         >
-          {minimized ? 'Expand' : 'Minimize'}
+          {minimized ? '+' : '−'}
         </button>
       </header>
 
-      {minimized ? (
-        <p id="hints-body" className="hints-compact">
-          Quick picks:{' '}
-          {HINT_ITEMS.map((hint, i) => (
-            <span key={hint.item.title}>
-              {i > 0 && ', '}
-              <button
-                type="button"
-                className="hint-link"
-                onClick={() => onPick(hint.item)}
-              >
-                {hint.item.title}
-              </button>
-            </span>
-          ))}
-        </p>
-      ) : (
-        <ul id="hints-body" className="hints-list">
+      <div id="hints-body" className="hints-side-body">
+        <div className="hints-side-picks">
           {HINT_ITEMS.map((hint) => (
-            <li key={hint.item.title}>
-              <button
-                type="button"
-                className="hint-chip"
-                onClick={() => onPick(hint.item)}
-              >
-                {hint.item.title}
-              </button>
-              <p>{hint.blurb}</p>
-            </li>
+            <button
+              key={hint.item.title}
+              type="button"
+              className="hint-chip"
+              onClick={() => onPick(hint.item)}
+              title={hint.blurb}
+            >
+              {hint.item.title}
+            </button>
           ))}
-          <li className="hint-tip">
-            <span className="hint-chip hint-chip-static">Ledger</span>
-            <p>{LEDGER_REFILL_TIP}</p>
-          </li>
-        </ul>
-      )}
-    </section>
+        </div>
+
+        {!minimized && (
+          <ul className="hints-list">
+            {HINT_ITEMS.map((hint) => (
+              <li key={`${hint.item.title}-detail`}>
+                <p>
+                  <strong>{hint.item.title}.</strong> {hint.blurb}
+                </p>
+              </li>
+            ))}
+            <li className="hint-tip">
+              <p>
+                <strong>Ledger.</strong> {LEDGER_REFILL_TIP}
+              </p>
+            </li>
+          </ul>
+        )}
+      </div>
+    </aside>
   )
 }

@@ -2,10 +2,13 @@ import type { IncomeEntry } from '../types'
 import {
   GOAL_AMOUNT_KEY,
   GOAL_MINIMIZED_KEY,
+  GOLD_PICKUP_MINIMIZED_KEY,
   HINTS_MINIMIZED_KEY,
   SOLD_BY_DEFAULT_KEY,
+  START_GOLD_KEY,
   STORAGE_KEY,
 } from '../types'
+import { todayIso } from './finance'
 
 export function loadEntries(): IncomeEntry[] {
   try {
@@ -96,6 +99,74 @@ export function loadHintsMinimized(): boolean {
 export function saveHintsMinimized(value: boolean): void {
   try {
     localStorage.setItem(HINTS_MINIMIZED_KEY, String(value))
+  } catch {
+    // ignore write failures
+  }
+}
+
+/** Start gold for today only; stale values from prior days are cleared. */
+export function loadStartGold(): number | null {
+  try {
+    const raw = localStorage.getItem(START_GOLD_KEY)
+    if (raw === null || raw === '') return null
+
+    // Legacy plain number — treat as stale and clear
+    if (!raw.startsWith('{')) {
+      localStorage.removeItem(START_GOLD_KEY)
+      return null
+    }
+
+    const parsed = JSON.parse(raw) as { amount?: unknown; date?: unknown }
+    if (
+      typeof parsed.amount !== 'number' ||
+      !Number.isFinite(parsed.amount) ||
+      parsed.amount < 0 ||
+      typeof parsed.date !== 'string'
+    ) {
+      localStorage.removeItem(START_GOLD_KEY)
+      return null
+    }
+
+    if (parsed.date !== todayIso()) {
+      localStorage.removeItem(START_GOLD_KEY)
+      return null
+    }
+
+    return parsed.amount
+  } catch {
+    return null
+  }
+}
+
+export function saveStartGold(value: number | null): void {
+  try {
+    if (value == null || !Number.isFinite(value) || value < 0) {
+      localStorage.removeItem(START_GOLD_KEY)
+      return
+    }
+    localStorage.setItem(
+      START_GOLD_KEY,
+      JSON.stringify({ amount: Math.round(value), date: todayIso() }),
+    )
+  } catch {
+    // ignore write failures
+  }
+}
+
+/** Defaults to minimized (true) when unset. */
+export function loadGoldPickupMinimized(): boolean {
+  try {
+    const raw = localStorage.getItem(GOLD_PICKUP_MINIMIZED_KEY)
+    if (raw === null) return true
+    return raw === 'true'
+  } catch {
+    return true
+  }
+}
+
+export function saveGoldPickupMinimized(value: boolean): void {
+  try {
+    localStorage.setItem(GOLD_PICKUP_MINIMIZED_KEY, String(value))
   } catch {
     // ignore write failures
   }

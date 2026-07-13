@@ -10,9 +10,10 @@ import {
 } from '../lib/finance'
 import { getItemOverride } from '../lib/itemOverrides'
 import { getLastTrackedDayGoods } from '../lib/retrack'
+import { GOLD_ITEM } from '../lib/specialItems'
 import { loadSoldByDefault, saveSoldByDefault } from '../lib/storage'
 import { fetchItemImage } from '../lib/wiki'
-import { HintsPanel } from './HintsPanel'
+import { GoldPickupPanel } from './GoldPickupPanel'
 import { ItemSearch } from './ItemSearch'
 import { RetrackList } from './RetrackList'
 
@@ -114,6 +115,18 @@ export function EntryForm({ onAdd, draftItem = null, entries }: Props) {
     const defaults = applyItemDefaults(item)
     setPrice(defaults.price)
     setQuantity(defaults.quantity)
+    setFormError(null)
+    setMode('log')
+    const priceInput = document.getElementById('price')
+    priceInput?.focus()
+  }
+
+  function handleGoldPickup(gained: number) {
+    setSelected(GOLD_ITEM)
+    setDraftImageUrl(undefined)
+    setEntryTaxExempt(true)
+    setPrice(formatGold(gained))
+    setQuantity('1')
     setFormError(null)
     setMode('log')
     const priceInput = document.getElementById('price')
@@ -236,7 +249,7 @@ export function EntryForm({ onAdd, draftItem = null, entries }: Props) {
         />
       ) : (
         <>
-          <HintsPanel onPick={handleSelect} />
+          <GoldPickupPanel onApply={handleGoldPickup} />
           <ItemSearch
             selectedTitle={selected?.title}
             onSelect={handleSelect}
