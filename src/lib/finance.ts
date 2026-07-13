@@ -52,6 +52,31 @@ export function formatGold(value: number): string {
   return rounded.toLocaleString('en-US')
 }
 
+/** Compact axis labels: 1.2M, 300k, -75k, 0. */
+export function formatCompactGold(value: number): string {
+  const n = Math.round(value)
+  if (n === 0) return '0'
+  const sign = n < 0 ? '-' : ''
+  const abs = Math.abs(n)
+  if (abs >= 1_000_000) {
+    const millions = abs / 1_000_000
+    const text =
+      millions >= 10 || Number.isInteger(millions)
+        ? String(Math.round(millions))
+        : millions.toFixed(1).replace(/\.0$/, '')
+    return `${sign}${text}M`
+  }
+  if (abs >= 1_000) {
+    const thousands = abs / 1_000
+    const text =
+      thousands >= 10 || Number.isInteger(thousands)
+        ? String(Math.round(thousands))
+        : thousands.toFixed(1).replace(/\.0$/, '')
+    return `${sign}${text}k`
+  }
+  return `${sign}${abs}`
+}
+
 /** Accepts digits with optional thousands commas, e.g. "40,000". */
 export function parseNumberInput(value: string): number {
   const cleaned = value.replace(/,/g, '').trim()

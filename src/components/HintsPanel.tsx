@@ -57,22 +57,21 @@ export function HintsPanel({ onPick }: Props) {
         </button>
       </header>
 
-      <div id="hints-body" className="hints-side-body">
-        <div className="hints-side-picks">
-          {HINT_ITEMS.map((hint) => (
-            <button
-              key={hint.item.title}
-              type="button"
-              className="hint-chip"
-              onClick={() => onPick(hint.item)}
-              title={hint.blurb}
-            >
-              {hint.item.title}
-            </button>
-          ))}
-        </div>
+        <div id="hints-body" className="hints-side-body">
+          <div className="hints-side-picks">
+            {HINT_ITEMS.map((hint) => (
+              <button
+                key={hint.item.title}
+                type="button"
+                className="hint-chip"
+                onClick={() => onPick(hint.item)}
+                title={hint.blurb}
+              >
+                {hint.item.title}
+              </button>
+            ))}
+          </div>
 
-        {!minimized && (
           <ul className="hints-list">
             {HINT_ITEMS.map((hint) => (
               <li key={`${hint.item.title}-detail`}>
@@ -87,8 +86,7 @@ export function HintsPanel({ onPick }: Props) {
               </p>
             </li>
           </ul>
-        )}
-      </div>
+        </div>
     </aside>
   )
 }

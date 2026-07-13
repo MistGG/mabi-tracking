@@ -3,13 +3,19 @@ import {
   Area,
   AreaChart,
   CartesianGrid,
+  ReferenceLine,
   ResponsiveContainer,
   Tooltip,
   XAxis,
   YAxis,
 } from 'recharts'
 import type { DailyProfit } from '../types'
-import { formatDisplayDate, formatGold, formatWeekday } from '../lib/finance'
+import {
+  formatCompactGold,
+  formatDisplayDate,
+  formatGold,
+  formatWeekday,
+} from '../lib/finance'
 import { buildProfitWeeks, defaultWeekId } from '../lib/weeks'
 
 type Props = {
@@ -34,7 +40,13 @@ export function ProfitChart({ data }: Props) {
       fullLabel: formatDisplayDate(d.date),
     })) ?? []
 
-  const hasAnySales = data.some((d) => d.entryCount > 0)
+  const yMax = Math.max(0, ...chartData.map((d) => d.net), 0)
+  const yMin = Math.min(0, ...chartData.map((d) => d.net), 0)
+  const ySpan = yMax - yMin || 1
+  const zeroOffset = `${(yMax / ySpan) * 100}%`
+  const hasNegatives = yMin < 0
+  const hasPositives = yMax > 0
+  const hasAnyActivity = data.some((d) => d.entryCount > 0 || d.net !== 0)
 
   return (
     <section className="panel chart-panel">
@@ -53,7 +65,7 @@ export function ProfitChart({ data }: Props) {
               {weeks.map((week) => (
                 <option key={week.id} value={week.id}>
                   {week.label}
-                  {week.weekNet > 0 ? ` · ${formatGold(week.weekNet)}` : ''}
+                  {week.weekNet !== 0 ? ` · ${formatGold(week.weekNet)}` : ''}
                 </option>
               ))}
             </select>
@@ -61,7 +73,7 @@ export function ProfitChart({ data }: Props) {
         )}
       </header>
 
-      {!hasAnySales ? (
+      {!hasAnyActivity ? (
         <div className="chart-empty">
           <p>Add sales to see your daily profit curve.</p>
         </div>
@@ -71,16 +83,72 @@ export function ProfitChart({ data }: Props) {
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart
                 data={chartData}
-                margin={{ top: 8, right: 12, left: -12, bottom: 4 }}
+                margin={{ top: 8, right: 8, left: 0, bottom: 4 }}
               >
                 <defs>
                   <linearGradient id="netFill" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="#2f6b4f" stopOpacity={0.45} />
-                    <stop
-                      offset="100%"
-                      stopColor="#2f6b4f"
-                      stopOpacity={0.02}
-                    />
+                    {hasPositives && (
+                      <>
+                        <stop
+                          offset="0%"
+                          stopColor="#2f6b4f"
+                          stopOpacity={0.45}
+                        />
+                        <stop
+                          offset={zeroOffset}
+                          stopColor="#2f6b4f"
+                          stopOpacity={0.08}
+                        />
+                      </>
+                    )}
+                    {hasNegatives && (
+                      <>
+                        <stop
+                          offset={zeroOffset}
+                          stopColor="#9b3b32"
+                          stopOpacity={0.08}
+                        />
+                        <stop
+                          offset="100%"
+                          stopColor="#9b3b32"
+                          stopOpacity={0.42}
+                        />
+                      </>
+                    )}
+                    {!hasPositives && !hasNegatives && (
+                      <>
+                        <stop
+                          offset="0%"
+                          stopColor="#2f6b4f"
+                          stopOpacity={0.2}
+                        />
+                        <stop
+                          offset="100%"
+                          stopColor="#2f6b4f"
+                          stopOpacity={0.02}
+                        />
+                      </>
+                    )}
+                  </linearGradient>
+                  <linearGradient id="netStroke" x1="0" y1="0" x2="0" y2="1">
+                    {hasPositives && (
+                      <>
+                        <stop offset="0%" stopColor="#245c42" />
+                        <stop offset={zeroOffset} stopColor="#245c42" />
+                      </>
+                    )}
+                    {hasNegatives && (
+                      <>
+                        <stop offset={zeroOffset} stopColor="#9b3b32" />
+                        <stop offset="100%" stopColor="#9b3b32" />
+                      </>
+                    )}
+                    {!hasPositives && !hasNegatives && (
+                      <>
+                        <stop offset="0%" stopColor="#245c42" />
+                        <stop offset="100%" stopColor="#245c42" />
+                      </>
+                    )}
                   </linearGradient>
                 </defs>
                 <CartesianGrid
@@ -99,34 +167,44 @@ export function ProfitChart({ data }: Props) {
                   tick={{ fill: '#3d5248', fontSize: 12 }}
                   axisLine={false}
                   tickLine={false}
-                  width={36}
-                  tickFormatter={(v: number) =>
-                    v >= 1000 ? `${Math.round(v / 1000)}k` : String(v)
-                  }
+                  width={48}
+                  tickFormatter={formatCompactGold}
                 />
+                {hasNegatives && hasPositives && (
+                  <ReferenceLine
+                    y={0}
+                    stroke="rgba(30, 45, 38, 0.28)"
+                    strokeDasharray="4 4"
+                  />
+                )}
                 <Tooltip
-                  contentStyle={{
-                    background: '#f4f7f1',
-                    border: '1px solid rgba(47, 107, 79, 0.25)',
-                    borderRadius: 8,
-                    color: '#1e2d26',
-                  }}
-                  formatter={(value) => [
-                    `${formatGold(Number(value ?? 0))} gold`,
-                    'Net',
-                  ]}
-                  labelFormatter={(_label, payload) => {
-                    const full = payload?.[0]?.payload?.fullLabel
-                    return full ? String(full) : String(_label)
+                  content={({ active, payload }) => {
+                    if (!active || !payload?.length) return null
+                    const point = payload[0]?.payload as
+                      | { net?: number; fullLabel?: string }
+                      | undefined
+                    if (!point) return null
+                    return (
+                      <div className="chart-tooltip">
+                        <p className="chart-tooltip-label">
+                          {point.fullLabel ?? ''}
+                        </p>
+                        <p className="chart-tooltip-value">
+                          Net: {formatGold(Number(point.net ?? 0))} gold
+                        </p>
+                      </div>
+                    )
                   }}
                 />
                 <Area
                   type="monotone"
                   dataKey="net"
-                  stroke="#245c42"
+                  stroke="url(#netStroke)"
                   strokeWidth={2.5}
                   fill="url(#netFill)"
+                  baseValue={0}
                   isAnimationActive={false}
+                  activeDot={{ r: 4, fill: '#245c42' }}
                 />
               </AreaChart>
             </ResponsiveContainer>

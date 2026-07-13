@@ -16,6 +16,15 @@ export type IncomeEntry = {
   sold?: boolean
 }
 
+/** Custom gold spend that reduces net totals. */
+export type Expenditure = {
+  id: string
+  comment: string
+  amount: number
+  date: string
+  createdAt: number
+}
+
 export type WikiSearchResult = {
   title: string
   url: string
@@ -39,6 +48,7 @@ export type DailyProfit = {
 
 export const MARKET_TAX_RATE = 0.04
 export const STORAGE_KEY = 'mabi-income-tracker-v1'
+export const EXPENDITURES_KEY = 'mabi-expenditures-v1'
 export const SOLD_BY_DEFAULT_KEY = 'mabi-sold-by-default-v1'
 export const GOAL_AMOUNT_KEY = 'mabi-goal-amount-v1'
 export const GOAL_MINIMIZED_KEY = 'mabi-goal-minimized-v1'

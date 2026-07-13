@@ -75,7 +75,10 @@ export function EntryForm({ onAdd, draftItem = null, entries }: Props) {
   const [formError, setFormError] = useState<string | null>(null)
 
   const override = selected ? getItemOverride(selected.title) : undefined
-  const exempt = entryTaxExempt
+  const forceTaxExempt = override?.taxExempt === true
+  const forceSold = override?.forceSold === true
+  const exempt = forceTaxExempt || entryTaxExempt
+  const soldChecked = forceSold || soldByDefault
 
   const retrack = useMemo(() => getLastTrackedDayGoods(entries), [entries])
 
@@ -98,7 +101,10 @@ export function EntryForm({ onAdd, draftItem = null, entries }: Props) {
     if (!draftItem) return
     setSelected({ title: draftItem.title, url: draftItem.url })
     setDraftImageUrl(draftItem.imageUrl)
-    setEntryTaxExempt(draftItem.taxExempt === true)
+    const itemOverride = getItemOverride(draftItem.title)
+    setEntryTaxExempt(
+      itemOverride?.taxExempt === true || draftItem.taxExempt === true,
+    )
     const values = applyDraft(draftItem)
     setPrice(values.price)
     setQuantity(values.quantity)
@@ -136,7 +142,10 @@ export function EntryForm({ onAdd, draftItem = null, entries }: Props) {
   function handleRetrackPick(entry: IncomeEntry) {
     setSelected({ title: entry.itemName, url: entry.wikiUrl })
     setDraftImageUrl(entry.imageUrl)
-    setEntryTaxExempt(entry.taxExempt === true)
+    const itemOverride = getItemOverride(entry.itemName)
+    setEntryTaxExempt(
+      itemOverride?.taxExempt === true || entry.taxExempt === true,
+    )
     setPrice(formatGold(entry.pricePerUnit))
     setQuantity(formatGold(entry.quantity))
     setFormError(null)
@@ -196,7 +205,7 @@ export function EntryForm({ onAdd, draftItem = null, entries }: Props) {
         quantity: qtyNum,
         date,
         taxExempt: exempt || undefined,
-        sold: soldByDefault,
+        sold: forceSold ? true : soldByDefault,
       })
 
       setPrice('')
@@ -322,15 +331,18 @@ export function EntryForm({ onAdd, draftItem = null, entries }: Props) {
       <label className="sold-default">
         <input
           type="checkbox"
-          checked={entryTaxExempt}
+          checked={exempt}
+          disabled={forceTaxExempt}
           onChange={(e) => setEntryTaxExempt(e.target.checked)}
         />
         <span>
           Tax exempt
           <span className="sold-default-hint">
-            {entryTaxExempt
-              ? 'No 4% market tax on this sale.'
-              : 'Market tax (4%) applies after gross.'}
+            {forceTaxExempt
+              ? 'Always on for this item.'
+              : entryTaxExempt
+                ? 'No 4% market tax on this sale.'
+                : 'Market tax (4%) applies after gross.'}
           </span>
         </span>
       </label>
@@ -338,7 +350,8 @@ export function EntryForm({ onAdd, draftItem = null, entries }: Props) {
       <label className="sold-default">
         <input
           type="checkbox"
-          checked={soldByDefault}
+          checked={soldChecked}
+          disabled={forceSold}
           onChange={(e) => {
             setSoldByDefault(e.target.checked)
             saveSoldByDefault(e.target.checked)
@@ -347,9 +360,11 @@ export function EntryForm({ onAdd, draftItem = null, entries }: Props) {
         <span>
           Sold by default
           <span className="sold-default-hint">
-            {soldByDefault
-              ? 'Counts toward totals right away.'
-              : 'Added as pending. Mark “Sold?” in the ledger to count it.'}
+            {forceSold
+              ? 'Always on for this item.'
+              : soldByDefault
+                ? 'Counts toward totals right away.'
+                : 'Added as pending. Mark “Sold?” in the ledger to count it.'}
           </span>
         </span>
       </label>

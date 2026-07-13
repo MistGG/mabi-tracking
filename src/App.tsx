@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { EntryForm } from './components/EntryForm'
 import { EntryList } from './components/EntryList'
+import { ExpenditurePanel } from './components/ExpenditurePanel'
 import { GoalPanel } from './components/GoalPanel'
 import { HintsPanel } from './components/HintsPanel'
 import { ProfitChart } from './components/ProfitChart'
@@ -13,9 +14,12 @@ import './App.css'
 export default function App() {
   const {
     entries,
+    expenditures,
     addEntry,
     removeEntry,
     updateEntry,
+    addExpenditure,
+    removeExpenditure,
     clearAll,
     totals,
     dailyProfits,
@@ -72,10 +76,13 @@ export default function App() {
           todayNet={totals.todayNet}
           todayGross={totals.todayGross}
           todayTax={totals.todayTax}
+          todaySpent={totals.todaySpent}
           totalNet={totals.net}
           totalGross={totals.gross}
           totalTax={totals.tax}
+          totalSpent={totals.spent}
           count={totals.count}
+          expenditureCount={totals.expenditureCount}
           onClear={clearAll}
         />
 
@@ -97,6 +104,12 @@ export default function App() {
             <ProfitChart data={dailyProfits} />
           </div>
         </div>
+
+        <ExpenditurePanel
+          expenditures={expenditures}
+          onAdd={addExpenditure}
+          onRemove={removeExpenditure}
+        />
 
         <EntryList
           entries={entries}

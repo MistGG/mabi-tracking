@@ -1,5 +1,6 @@
-import type { IncomeEntry } from '../types'
+import type { Expenditure, IncomeEntry } from '../types'
 import {
+  EXPENDITURES_KEY,
   GOAL_AMOUNT_KEY,
   GOAL_MINIMIZED_KEY,
   GOLD_PICKUP_MINIMIZED_KEY,
@@ -24,6 +25,22 @@ export function loadEntries(): IncomeEntry[] {
 
 export function saveEntries(entries: IncomeEntry[]): void {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(entries))
+}
+
+export function loadExpenditures(): Expenditure[] {
+  try {
+    const raw = localStorage.getItem(EXPENDITURES_KEY)
+    if (!raw) return []
+    const parsed = JSON.parse(raw) as unknown
+    if (!Array.isArray(parsed)) return []
+    return parsed.filter(isValidExpenditure)
+  } catch {
+    return []
+  }
+}
+
+export function saveExpenditures(expenditures: Expenditure[]): void {
+  localStorage.setItem(EXPENDITURES_KEY, JSON.stringify(expenditures))
 }
 
 export function loadSoldByDefault(): boolean {
@@ -185,5 +202,19 @@ function isValidEntry(value: unknown): value is IncomeEntry {
     typeof e.createdAt === 'number' &&
     (e.taxExempt === undefined || typeof e.taxExempt === 'boolean') &&
     (e.sold === undefined || typeof e.sold === 'boolean')
+  )
+}
+
+function isValidExpenditure(value: unknown): value is Expenditure {
+  if (!value || typeof value !== 'object') return false
+  const e = value as Record<string, unknown>
+  return (
+    typeof e.id === 'string' &&
+    typeof e.comment === 'string' &&
+    typeof e.amount === 'number' &&
+    Number.isFinite(e.amount) &&
+    e.amount > 0 &&
+    typeof e.date === 'string' &&
+    typeof e.createdAt === 'number'
   )
 }
