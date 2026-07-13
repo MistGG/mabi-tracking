@@ -2,6 +2,7 @@ import type { IncomeEntry } from '../types'
 import {
   GOAL_AMOUNT_KEY,
   GOAL_MINIMIZED_KEY,
+  HINTS_MINIMIZED_KEY,
   SOLD_BY_DEFAULT_KEY,
   STORAGE_KEY,
 } from '../types'
@@ -76,6 +77,25 @@ export function loadGoalMinimized(): boolean {
 export function saveGoalMinimized(value: boolean): void {
   try {
     localStorage.setItem(GOAL_MINIMIZED_KEY, String(value))
+  } catch {
+    // ignore write failures
+  }
+}
+
+/** Defaults to minimized (true) when unset. */
+export function loadHintsMinimized(): boolean {
+  try {
+    const raw = localStorage.getItem(HINTS_MINIMIZED_KEY)
+    if (raw === null) return true
+    return raw === 'true'
+  } catch {
+    return true
+  }
+}
+
+export function saveHintsMinimized(value: boolean): void {
+  try {
+    localStorage.setItem(HINTS_MINIMIZED_KEY, String(value))
   } catch {
     // ignore write failures
   }

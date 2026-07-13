@@ -12,6 +12,7 @@ import { getItemOverride } from '../lib/itemOverrides'
 import { getLastTrackedDayGoods } from '../lib/retrack'
 import { loadSoldByDefault, saveSoldByDefault } from '../lib/storage'
 import { fetchItemImage } from '../lib/wiki'
+import { HintsPanel } from './HintsPanel'
 import { ItemSearch } from './ItemSearch'
 import { RetrackList } from './RetrackList'
 
@@ -73,7 +74,7 @@ export function EntryForm({ onAdd, draftItem = null, entries }: Props) {
   const [formError, setFormError] = useState<string | null>(null)
 
   const override = selected ? getItemOverride(selected.title) : undefined
-  const exempt = override?.taxExempt === true || entryTaxExempt
+  const exempt = entryTaxExempt
 
   const retrack = useMemo(() => getLastTrackedDayGoods(entries), [entries])
 
@@ -108,11 +109,15 @@ export function EntryForm({ onAdd, draftItem = null, entries }: Props) {
   function handleSelect(item: WikiSearchResult) {
     setSelected(item)
     setDraftImageUrl(undefined)
-    setEntryTaxExempt(false)
+    const itemOverride = getItemOverride(item.title)
+    setEntryTaxExempt(itemOverride?.taxExempt === true)
     const defaults = applyItemDefaults(item)
     setPrice(defaults.price)
     setQuantity(defaults.quantity)
     setFormError(null)
+    setMode('log')
+    const priceInput = document.getElementById('price')
+    priceInput?.focus()
   }
 
   function handleRetrackPick(entry: IncomeEntry) {
@@ -230,10 +235,13 @@ export function EntryForm({ onAdd, draftItem = null, entries }: Props) {
           onPick={handleRetrackPick}
         />
       ) : (
-        <ItemSearch
-          selectedTitle={selected?.title}
-          onSelect={handleSelect}
-        />
+        <>
+          <HintsPanel onPick={handleSelect} />
+          <ItemSearch
+            selectedTitle={selected?.title}
+            onSelect={handleSelect}
+          />
+        </>
       )}
 
       {selected && mode === 'retrack' && (
@@ -297,6 +305,22 @@ export function EntryForm({ onAdd, draftItem = null, entries }: Props) {
       )}
 
       {formError && <p className="field-error">{formError}</p>}
+
+      <label className="sold-default">
+        <input
+          type="checkbox"
+          checked={entryTaxExempt}
+          onChange={(e) => setEntryTaxExempt(e.target.checked)}
+        />
+        <span>
+          Tax exempt
+          <span className="sold-default-hint">
+            {entryTaxExempt
+              ? 'No 4% market tax on this sale.'
+              : 'Market tax (4%) applies after gross.'}
+          </span>
+        </span>
+      </label>
 
       <label className="sold-default">
         <input

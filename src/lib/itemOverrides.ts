@@ -24,6 +24,11 @@ const ITEM_OVERRIDES: Record<string, ItemOverride> = {
     defaultQuantity: 30,
     hideDeltas: true,
   },
+  gold: {
+    taxExempt: true,
+    defaultQuantity: 1,
+    hideDeltas: true,
+  },
 }
 
 export function getItemOverride(itemName: string): ItemOverride | undefined {

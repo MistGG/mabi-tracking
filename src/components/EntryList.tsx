@@ -70,6 +70,16 @@ export function EntryList({
 
             <div className="table-scroll">
               <table className="ledger-table">
+                <colgroup>
+                  <col className="col-item" />
+                  <col className="col-qty" />
+                  <col className="col-unit" />
+                  <col className="col-gross" />
+                  <col className="col-net" />
+                  <col className="col-delta" />
+                  <col className="col-delta" />
+                  <col className="col-actions" />
+                </colgroup>
                 <thead>
                   <tr>
                     <th scope="col">Item</th>
