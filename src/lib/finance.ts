@@ -53,6 +53,18 @@ export function entryCountsTowardTotals(entry: IncomeEntry): boolean {
   return isSold(entry) && !hasUniqueValue(entry)
 }
 
+/**
+ * Tracked sales that belong on the profit chart / daily activity metrics.
+ * Untracked bankroll entries still count in all-time money totals.
+ */
+export function entryCountsTowardChart(entry: IncomeEntry): boolean {
+  return entryCountsTowardTotals(entry) && entry.untracked !== true
+}
+
+export function isUntracked(entry: IncomeEntry): boolean {
+  return entry.untracked === true
+}
+
 export function formatGold(value: number): string {
   const rounded = Math.round(value)
   return rounded.toLocaleString('en-US')

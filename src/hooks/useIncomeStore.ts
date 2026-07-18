@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import type { DailyProfit, Expenditure, IncomeEntry } from '../types'
 import {
+  entryCountsTowardChart,
   entryCountsTowardTotals,
   entryGross,
   entryNet,
@@ -87,7 +88,9 @@ export function useIncomeStore() {
     const spent = expenditures.reduce((sum, e) => sum + e.amount, 0)
     const net = salesNet - spent
     const today = todayIso()
-    const todayEntries = counted.filter((e) => e.date === today)
+    const todayEntries = counted.filter(
+      (e) => e.date === today && entryCountsTowardChart(e),
+    )
     const todayGross = todayEntries.reduce((sum, e) => sum + entryGross(e), 0)
     const todaySalesNet = todayEntries.reduce((sum, e) => sum + entryNet(e), 0)
     const todaySpent = expenditures
@@ -110,7 +113,7 @@ export function useIncomeStore() {
   const dailyProfits: DailyProfit[] = useMemo(() => {
     const map = new Map<string, DailyProfit>()
     for (const entry of entries) {
-      if (!entryCountsTowardTotals(entry)) continue
+      if (!entryCountsTowardChart(entry)) continue
       const existing = map.get(entry.date)
       const gross = entryGross(entry)
       const net = entryNet(entry)

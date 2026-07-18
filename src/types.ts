@@ -14,6 +14,11 @@ export type IncomeEntry = {
    * Missing (undefined) is treated as sold for backwards compatibility.
    */
   sold?: boolean
+  /**
+   * Prior / out-of-band gold. Counts toward money totals, but is excluded from
+   * the daily chart and “today” activity metrics.
+   */
+  untracked?: boolean
 }
 
 /** Custom gold spend that reduces net totals. */

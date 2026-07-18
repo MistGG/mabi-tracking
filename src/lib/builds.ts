@@ -1,6 +1,12 @@
 import { BUILD_STORAGE_KEY } from '../types'
 import type { WikiSearchResult } from '../types'
-import { BUILD_SLOTS, type BuildSlotId } from './reforges'
+import { mabibaseIconFromItemUrl } from './mabibase'
+import {
+  BUILD_SLOTS,
+  detectEchostoneColor,
+  ECHOSTONE_ITEMS,
+  type BuildSlotId,
+} from './reforges'
 
 export type BuildItem = WikiSearchResult & {
   imageUrl?: string
@@ -43,6 +49,8 @@ export type PersonalizedBuild = {
 type ShareSlot = {
   t?: string
   u?: string
+  /** Item icon URL when it cannot be derived from the Mabibase item link. */
+  i?: string
   r?: Array<string | null>
   /** Gear complete */
   c?: 0 | 1
@@ -73,6 +81,34 @@ function emptyReforgeFlags(): ReforgeLineFlags {
 }
 
 export { emptyReforgeFlags }
+
+/** Resolve a display icon for a build item (share links often omit imageUrl). */
+export function resolveBuildItemImage(item: {
+  title: string
+  url: string
+  imageUrl?: string
+}): string | undefined {
+  if (item.imageUrl && !/wiki\.mabinogiworld\.com/i.test(item.imageUrl)) {
+    return item.imageUrl
+  }
+  const fromMabibase = mabibaseIconFromItemUrl(item.url)
+  if (fromMabibase) return fromMabibase
+  const color = detectEchostoneColor(item.title)
+  if (color) {
+    return ECHOSTONE_ITEMS.find((row) => row.color === color)?.imageUrl
+  }
+  return undefined
+}
+
+export function needsBuildItemImageBackfill(item: {
+  title: string
+  url: string
+  imageUrl?: string
+}): boolean {
+  if (!item.imageUrl) return true
+  if (/wiki\.mabinogiworld\.com/i.test(item.imageUrl)) return true
+  return false
+}
 
 export function emptySlotState(): BuildSlotState {
   return {
@@ -176,6 +212,8 @@ function normalizeSlot(value: unknown): BuildSlotState | null {
       url: raw.url,
       ...(typeof raw.imageUrl === 'string' ? { imageUrl: raw.imageUrl } : {}),
     }
+    const imageUrl = resolveBuildItemImage(item)
+    if (imageUrl) item.imageUrl = imageUrl
   }
 
   return {
@@ -304,6 +342,14 @@ function buildToSharePayload(build: PersonalizedBuild): SharePayload {
     if (state.item) {
       entry.t = state.item.title
       entry.u = state.item.url
+      const derived = resolveBuildItemImage({
+        title: state.item.title,
+        url: state.item.url,
+      })
+      // Only embed icon when it cannot be reconstructed from the Mabibase URL.
+      if (state.item.imageUrl && state.item.imageUrl !== derived) {
+        entry.i = state.item.imageUrl
+      }
     }
     if (state.complete) entry.c = 1
     const rc = flagsToBits(state.reforgeFlags, 'complete')
@@ -351,8 +397,18 @@ function sharePayloadToBuild(payload: SharePayload): PersonalizedBuild {
       : ([null, null, null] as [string | null, string | null, string | null])
     const item =
       typeof raw.t === 'string' && typeof raw.u === 'string'
-        ? { title: raw.t, url: raw.u }
+        ? {
+            title: raw.t,
+            url: raw.u,
+            ...(typeof raw.i === 'string' && raw.i.trim()
+              ? { imageUrl: raw.i.trim() }
+              : {}),
+          }
         : null
+    if (item) {
+      const imageUrl = resolveBuildItemImage(item)
+      if (imageUrl) item.imageUrl = imageUrl
+    }
     const enchants: [EnchantLine | null, EnchantLine | null] = [null, null]
     if (Array.isArray(raw.e)) {
       for (let i = 0; i < 2; i++) {

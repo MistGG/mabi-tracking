@@ -26,6 +26,7 @@ type AddPayload = {
   date: string
   taxExempt?: boolean
   sold?: boolean
+  untracked?: boolean
 }
 
 type FormMode = 'log' | 'retrack'
@@ -77,6 +78,7 @@ export function EntryForm({
   const [selected, setSelected] = useState<WikiSearchResult | null>(null)
   const [draftImageUrl, setDraftImageUrl] = useState<string | undefined>()
   const [entryTaxExempt, setEntryTaxExempt] = useState(false)
+  const [untracked, setUntracked] = useState(false)
   const [price, setPrice] = useState('')
   const [quantity, setQuantity] = useState('1')
   const [date, setDate] = useState(todayIso())
@@ -224,11 +226,13 @@ export function EntryForm({
         date,
         taxExempt: exempt || undefined,
         sold: forceSold ? true : soldByDefault,
+        untracked: untracked || undefined,
       })
 
       setPrice('')
       setQuantity('1')
       setDraftImageUrl(undefined)
+      setUntracked(false)
     } finally {
       setSubmitting(false)
     }
@@ -386,6 +390,22 @@ export function EntryForm({
               : soldByDefault
                 ? 'Counts toward totals right away.'
                 : 'Added as pending. Mark “Sold?” in the ledger to count it.'}
+          </span>
+        </span>
+      </label>
+
+      <label className="sold-default">
+        <input
+          type="checkbox"
+          checked={untracked}
+          onChange={(e) => setUntracked(e.target.checked)}
+        />
+        <span>
+          Untracked
+          <span className="sold-default-hint">
+            {untracked
+              ? 'Adds to all-time net / goal, but not Today or the profit chart.'
+              : 'Off by default. Use for gold you had before tracking.'}
           </span>
         </span>
       </label>

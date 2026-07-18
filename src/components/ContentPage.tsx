@@ -1,11 +1,25 @@
 import { useEffect, useMemo, useState } from 'react'
 import {
+  Area,
+  AreaChart,
+  CartesianGrid,
+  ResponsiveContainer,
+  Tooltip as RechartsTooltip,
+  XAxis,
+  YAxis,
+} from 'recharts'
+import {
   applyPeriodResets,
+  completionPercent,
   createActivityId,
+  formatDailyHistoryLabel,
+  formatWeeklyHistoryLabel,
   loadContent,
   saveContent,
+  withCurrentHistory,
   type ContentActivity,
   type ContentCadence,
+  type ContentHistoryPoint,
   type ContentState,
 } from '../lib/content'
 import { ItemSearch, type ItemSearchHit } from './ItemSearch'
@@ -87,6 +101,92 @@ function ActivityTrackCard({
   )
 }
 
+function ConsistencyChart({
+  title,
+  subtitle,
+  history,
+  formatLabel,
+  gradientId,
+}: {
+  title: string
+  subtitle: string
+  history: ContentHistoryPoint[]
+  formatLabel: (key: string) => string
+  gradientId: string
+}) {
+  const data = useMemo(
+    () =>
+      history.map((row) => ({
+        ...row,
+        label: formatLabel(row.key),
+      })),
+    [history, formatLabel],
+  )
+
+  return (
+    <section className="content-chart-card">
+      <header className="content-chart-head">
+        <h3>{title}</h3>
+        <p>{subtitle}</p>
+      </header>
+      {data.length === 0 ? (
+        <p className="content-empty">No history yet — mark some runs.</p>
+      ) : (
+        <div className="content-chart-wrap">
+          <ResponsiveContainer width="100%" height="100%">
+            <AreaChart
+              data={data}
+              margin={{ top: 8, right: 8, left: 0, bottom: 0 }}
+            >
+              <defs>
+                <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="#2f6b4f" stopOpacity={0.4} />
+                  <stop offset="100%" stopColor="#2f6b4f" stopOpacity={0.05} />
+                </linearGradient>
+              </defs>
+              <CartesianGrid stroke="var(--line)" strokeDasharray="3 6" />
+              <XAxis
+                dataKey="label"
+                tick={{ fill: 'var(--ink-soft)', fontSize: 11 }}
+                tickLine={false}
+                axisLine={false}
+                interval="preserveStartEnd"
+                minTickGap={28}
+              />
+              <YAxis
+                domain={[0, 100]}
+                tickFormatter={(v) => `${v}%`}
+                width={36}
+                tick={{ fill: 'var(--ink-soft)', fontSize: 11 }}
+                tickLine={false}
+                axisLine={false}
+              />
+              <RechartsTooltip
+                formatter={(value) => [`${value}%`, 'Cleared']}
+                labelFormatter={(label) => String(label)}
+                contentStyle={{
+                  background: 'var(--surface-strong)',
+                  border: '1px solid var(--border)',
+                  borderRadius: 8,
+                  fontSize: 12,
+                }}
+              />
+              <Area
+                type="monotone"
+                dataKey="percent"
+                stroke="#2f6b4f"
+                strokeWidth={2}
+                fill={`url(#${gradientId})`}
+                isAnimationActive={false}
+              />
+            </AreaChart>
+          </ResponsiveContainer>
+        </div>
+      )}
+    </section>
+  )
+}
+
 export function ContentPage() {
   const [state, setState] = useState<ContentState>(() => loadContent())
   const [mode, setMode] = useState<ContentMode>(() =>
@@ -100,7 +200,7 @@ export function ContentPage() {
   const [searchKey, setSearchKey] = useState(0)
 
   useEffect(() => {
-    setState((prev) => applyPeriodResets(prev))
+    setState((prev) => withCurrentHistory(applyPeriodResets(prev)))
   }, [])
 
   useEffect(() => {
@@ -115,6 +215,15 @@ export function ContentPage() {
     () => state.activities.filter((a) => a.cadence === 'weekly'),
     [state.activities],
   )
+
+  const dailyNow = completionPercent(state.activities, 'daily')
+  const weeklyNow = completionPercent(state.activities, 'weekly')
+
+  function patchState(
+    updater: (prev: ContentState) => ContentState,
+  ) {
+    setState((prev) => withCurrentHistory(updater(prev)))
+  }
 
   function selectActivity(item: ItemSearchHit) {
     setDraftTitle(item.title)
@@ -141,7 +250,7 @@ export function ContentPage() {
       maxRuns,
       runs: 0,
     }
-    setState((prev) => ({
+    patchState((prev) => ({
       ...prev,
       activities: [...prev.activities, activity],
     }))
@@ -153,7 +262,7 @@ export function ContentPage() {
   }
 
   function removeActivity(id: string) {
-    setState((prev) => ({
+    patchState((prev) => ({
       ...prev,
       activities: prev.activities.filter((a) => a.id !== id),
     }))
@@ -161,7 +270,7 @@ export function ContentPage() {
 
   function updateMaxRuns(id: string, maxRuns: number) {
     const nextMax = clampMax(maxRuns)
-    setState((prev) => ({
+    patchState((prev) => ({
       ...prev,
       activities: prev.activities.map((a) =>
         a.id === id
@@ -172,7 +281,7 @@ export function ContentPage() {
   }
 
   function setRuns(id: string, runs: number) {
-    setState((prev) => ({
+    patchState((prev) => ({
       ...prev,
       activities: prev.activities.map((a) =>
         a.id === id
@@ -358,40 +467,67 @@ export function ContentPage() {
           </div>
         </>
       ) : (
-        <div className="content-columns">
-          <section className="content-section">
-            <h3 className="content-section-title">Daily</h3>
-            {daily.length === 0 ? (
-              <p className="content-empty">No daily activities.</p>
-            ) : (
-              <div className="content-track-list">
-                {daily.map((activity) => (
-                  <ActivityTrackCard
-                    key={activity.id}
-                    activity={activity}
-                    onSetRuns={(runs) => setRuns(activity.id, runs)}
-                  />
-                ))}
-              </div>
-            )}
-          </section>
-          <section className="content-section">
-            <h3 className="content-section-title">Weekly</h3>
-            {weekly.length === 0 ? (
-              <p className="content-empty">No weekly activities.</p>
-            ) : (
-              <div className="content-track-list">
-                {weekly.map((activity) => (
-                  <ActivityTrackCard
-                    key={activity.id}
-                    activity={activity}
-                    onSetRuns={(runs) => setRuns(activity.id, runs)}
-                  />
-                ))}
-              </div>
-            )}
-          </section>
-        </div>
+        <>
+          <div className="content-chart-grid">
+            <ConsistencyChart
+              title="Daily consistency"
+              subtitle={
+                daily.length
+                  ? `Today ${dailyNow}% cleared of planned runs`
+                  : 'No daily activities set up'
+              }
+              history={state.dailyHistory}
+              formatLabel={formatDailyHistoryLabel}
+              gradientId="contentDailyFill"
+            />
+            <ConsistencyChart
+              title="Weekly consistency"
+              subtitle={
+                weekly.length
+                  ? `This week ${weeklyNow}% cleared of planned runs`
+                  : 'No weekly activities set up'
+              }
+              history={state.weeklyHistory}
+              formatLabel={formatWeeklyHistoryLabel}
+              gradientId="contentWeeklyFill"
+            />
+          </div>
+
+          <div className="content-columns">
+            <section className="content-section">
+              <h3 className="content-section-title">Daily</h3>
+              {daily.length === 0 ? (
+                <p className="content-empty">No daily activities.</p>
+              ) : (
+                <div className="content-track-list">
+                  {daily.map((activity) => (
+                    <ActivityTrackCard
+                      key={activity.id}
+                      activity={activity}
+                      onSetRuns={(runs) => setRuns(activity.id, runs)}
+                    />
+                  ))}
+                </div>
+              )}
+            </section>
+            <section className="content-section">
+              <h3 className="content-section-title">Weekly</h3>
+              {weekly.length === 0 ? (
+                <p className="content-empty">No weekly activities.</p>
+              ) : (
+                <div className="content-track-list">
+                  {weekly.map((activity) => (
+                    <ActivityTrackCard
+                      key={activity.id}
+                      activity={activity}
+                      onSetRuns={(runs) => setRuns(activity.id, runs)}
+                    />
+                  ))}
+                </div>
+              )}
+            </section>
+          </div>
+        </>
       )}
     </section>
   )

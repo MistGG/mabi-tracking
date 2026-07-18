@@ -77,14 +77,14 @@ html[data-theme='dark'] {
   --brand-shadow: rgba(0, 0, 0, 0.35);
   --search-bg: #1a2420;
   --chip-bg: #24332c;
-  --flag-on: #3f8f64;
-  --flag-on-text: #0f1713;
+  --flag-on: #2f5643;
+  --flag-on-text: #d7ebe0;
   --flag-yield-on: #c4a05a;
   --flag-yield-text: #1a160c;
   --tooltip-bg: #0d1210;
   --tooltip-text: #e8f0ea;
-  --btn-primary: #3f8f64;
-  --btn-primary-hover: #4ea576;
+  --btn-primary: #3a7a58;
+  --btn-primary-hover: #458a65;
   --btn-primary-text: #0f1713;
   --art-opacity: 0.18;
   color-scheme: dark;

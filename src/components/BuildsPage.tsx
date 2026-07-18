@@ -7,6 +7,8 @@ import {
   emptySlotState,
   loadBuild,
   readSharedBuildFromHash,
+  resolveBuildItemImage,
+  needsBuildItemImageBackfill,
   saveBuild,
   type PersonalizedBuild,
   type ReforgePriority,
@@ -16,7 +18,11 @@ import {
   type EnchantDropSource,
   type WikiInlineSegment,
 } from '../lib/enchantDrops'
-import { searchMabibaseEnchants, searchMabibaseItems } from '../lib/mabibase'
+import {
+  fetchMabibaseItemImage,
+  searchMabibaseEnchants,
+  searchMabibaseItems,
+} from '../lib/mabibase'
 import {
   ALL_ECHOSTONE_AWAKENINGS,
   ALL_REFORGES,
@@ -29,7 +35,6 @@ import {
   resolveReforgeLabel,
   searchEchostoneItems,
 } from '../lib/reforges'
-import { fetchItemImage } from '../lib/wiki'
 import { ItemSearch, type ItemSearchHit } from './ItemSearch'
 import { ReforgePicker } from './ReforgePicker'
 import { Tooltip } from './Tooltip'
@@ -276,7 +281,7 @@ export function BuildsPage() {
     () =>
       BUILD_SLOTS.map((slot) => {
         const item = build.slots[slot.id].item
-        if (!item || item.imageUrl) return ''
+        if (!item || !needsBuildItemImageBackfill(item)) return ''
         return `${slot.id}:${item.title}`
       }).join('|'),
     [build.slots],
@@ -289,14 +294,35 @@ export function BuildsPage() {
 
     for (const slot of BUILD_SLOTS) {
       const item = build.slots[slot.id].item
-      if (!item || item.imageUrl) continue
+      if (!item || !needsBuildItemImageBackfill(item)) continue
+
+      const resolved = resolveBuildItemImage(item)
+      if (resolved && resolved !== item.imageUrl) {
+        setBuild((prev) => {
+          const current = prev.slots[slot.id].item
+          if (!current || current.title !== item.title) return prev
+          if (current.imageUrl === resolved) return prev
+          return {
+            ...prev,
+            slots: {
+              ...prev.slots,
+              [slot.id]: {
+                ...prev.slots[slot.id],
+                item: { ...current, imageUrl: resolved },
+              },
+            },
+          }
+        })
+        continue
+      }
+      if (resolved) continue
 
       const controller = new AbortController()
       controllers.push(controller)
       const title = item.title
       const slotId = slot.id
 
-      void fetchItemImage(title, controller.signal)
+      void fetchMabibaseItemImage(title, controller.signal)
         .then((imageUrl) => {
           if (!imageUrl || controller.signal.aborted) return
           setBuild((prev) => {
@@ -371,7 +397,15 @@ export function BuildsPage() {
       const nextItem = {
         title: item.title,
         url: item.url,
-        ...(item.imageUrl ? { imageUrl: item.imageUrl } : {}),
+        ...(item.imageUrl
+          ? { imageUrl: item.imageUrl }
+          : (() => {
+              const resolved = resolveBuildItemImage({
+                title: item.title,
+                url: item.url,
+              })
+              return resolved ? { imageUrl: resolved } : {}
+            })()),
       }
       let reforgeIds = current.reforgeIds
       let reforgeFlags = current.reforgeFlags
@@ -425,7 +459,7 @@ export function BuildsPage() {
 
     if (item.imageUrl) return
 
-    void fetchItemImage(item.title)
+    void fetchMabibaseItemImage(item.title)
       .then((imageUrl) => {
         if (!imageUrl) return
         setBuild((prev) => {

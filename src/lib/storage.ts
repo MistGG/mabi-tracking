@@ -201,7 +201,8 @@ function isValidEntry(value: unknown): value is IncomeEntry {
     typeof e.date === 'string' &&
     typeof e.createdAt === 'number' &&
     (e.taxExempt === undefined || typeof e.taxExempt === 'boolean') &&
-    (e.sold === undefined || typeof e.sold === 'boolean')
+    (e.sold === undefined || typeof e.sold === 'boolean') &&
+    (e.untracked === undefined || typeof e.untracked === 'boolean')
   )
 }
 

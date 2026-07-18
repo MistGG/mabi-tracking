@@ -66,32 +66,32 @@ export const ECHOSTONE_ITEMS: Array<{
   {
     color: 'Red',
     title: 'Red Echostone',
-    url: 'https://wiki.mabinogiworld.com/view/Red_Echostone',
-    imageUrl: 'https://wiki.mabinogiworld.com/images/d/db/Red_Echostone.png',
+    url: 'https://na.mabibase.com/item/53934',
+    imageUrl: 'https://api.na.mabibase.com/assets/item/icon/53934',
   },
   {
     color: 'Blue',
     title: 'Blue Echostone',
-    url: 'https://wiki.mabinogiworld.com/view/Blue_Echostone',
-    imageUrl: 'https://wiki.mabinogiworld.com/images/b/b6/Blue_Echostone.png',
+    url: 'https://na.mabibase.com/item/53935',
+    imageUrl: 'https://api.na.mabibase.com/assets/item/icon/53935',
   },
   {
     color: 'Yellow',
     title: 'Yellow Echostone',
-    url: 'https://wiki.mabinogiworld.com/view/Yellow_Echostone',
-    imageUrl: 'https://wiki.mabinogiworld.com/images/d/da/Yellow_Echostone.png',
+    url: 'https://na.mabibase.com/item/53936',
+    imageUrl: 'https://api.na.mabibase.com/assets/item/icon/53936',
   },
   {
     color: 'Silver',
     title: 'Silver Echostone',
-    url: 'https://wiki.mabinogiworld.com/view/Silver_Echostone',
-    imageUrl: 'https://wiki.mabinogiworld.com/images/d/dd/Silver_Echostone.png',
+    url: 'https://na.mabibase.com/item/53937',
+    imageUrl: 'https://api.na.mabibase.com/assets/item/icon/53937',
   },
   {
     color: 'Black',
     title: 'Black Echostone',
-    url: 'https://wiki.mabinogiworld.com/view/Black_Echostone',
-    imageUrl: 'https://wiki.mabinogiworld.com/images/6/64/Black_Echostone.png',
+    url: 'https://na.mabibase.com/item/53938',
+    imageUrl: 'https://api.na.mabibase.com/assets/item/icon/53938',
   },
 ]
 

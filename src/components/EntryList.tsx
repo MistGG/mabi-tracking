@@ -23,6 +23,7 @@ type Props = {
   onRemove: (id: string) => void
   onSelectItem: (entry: IncomeEntry) => void
   onToggleSold: (id: string, sold: boolean) => void
+  onToggleUntracked: (id: string, untracked: boolean) => void
   onRelist: (entry: IncomeEntry) => void
 }
 
@@ -31,6 +32,7 @@ export function EntryList({
   onRemove,
   onSelectItem,
   onToggleSold,
+  onToggleUntracked,
   onRelist,
 }: Props) {
   const [visibleDays, setVisibleDays] = useState(INITIAL_VISIBLE_DAYS)
@@ -71,8 +73,8 @@ export function EntryList({
         <h2>Ledger</h2>
         <p>
           {entries.length} sale{entries.length === 1 ? '' : 's'} by day ·
-          showing last {shownDays} day{shownDays === 1 ? '' : 's'} · totals
-          count sold entries only
+          showing last {shownDays} day{shownDays === 1 ? '' : 's'} · sold
+          entries count in totals · untracked skip Today / chart
         </p>
       </header>
 
@@ -135,7 +137,7 @@ export function EntryList({
                         key={row.entry.id}
                         className={`ledger-row-clickable${
                           pending ? ' ledger-row-pending' : ''
-                        }`}
+                        }${row.untracked ? ' ledger-row-untracked' : ''}`}
                         onClick={() => onSelectItem(row.entry)}
                         onKeyDown={(e) => {
                           if (e.key === 'Enter' || e.key === ' ') {
@@ -167,6 +169,9 @@ export function EntryList({
                             </span>
                             {pending && (
                               <span className="pending-badge">pending</span>
+                            )}
+                            {row.untracked && (
+                              <span className="untracked-badge">untracked</span>
                             )}
                           </div>
                         </td>
@@ -217,6 +222,26 @@ export function EntryList({
                               }
                             >
                               {row.sold ? 'Sold ✓' : 'Sold?'}
+                            </button>
+                            <button
+                              type="button"
+                              className={`btn ghost compact${
+                                row.untracked ? ' untracked-on' : ''
+                              }`}
+                              aria-pressed={row.untracked}
+                              onClick={() =>
+                                onToggleUntracked(
+                                  row.entry.id,
+                                  !row.untracked,
+                                )
+                              }
+                              title={
+                                row.untracked
+                                  ? 'Untracked — counts in all-time net, not Today/chart'
+                                  : 'Mark untracked for prior gold / bankroll'
+                              }
+                            >
+                              {row.untracked ? 'Untracked ✓' : 'Untracked?'}
                             </button>
                             <button
                               type="button"

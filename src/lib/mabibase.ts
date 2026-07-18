@@ -40,6 +40,40 @@ export type MabibaseItemResult = WikiSearchResult & {
   description?: string
 }
 
+/** Derive icon CDN URL from a Mabibase item page link. */
+export function mabibaseIconFromItemUrl(url: string): string | undefined {
+  const match = url.match(/mabibase\.com\/item\/(\d+)/i)
+  if (!match?.[1]) return undefined
+  return `https://api.na.mabibase.com/assets/item/icon/${match[1]}`
+}
+
+export function mabibaseIconFromItemId(id: number | string): string {
+  return `https://api.na.mabibase.com/assets/item/icon/${id}`
+}
+
+/**
+ * Look up a Mabibase item icon by name.
+ * Prefers an exact localName match, then the first result with an icon.
+ */
+export async function fetchMabibaseItemImage(
+  title: string,
+  signal?: AbortSignal,
+): Promise<string | undefined> {
+  const trimmed = title.trim()
+  if (trimmed.length < 2) return undefined
+  try {
+    const rows = await searchMabibaseItems(trimmed, signal, 8)
+    const exact = rows.find(
+      (row) => row.title.toLowerCase() === trimmed.toLowerCase(),
+    )
+    const hit = exact ?? rows.find((row) => row.imageUrl) ?? rows[0]
+    if (!hit) return undefined
+    return hit.imageUrl ?? mabibaseIconFromItemId(hit.id)
+  } catch {
+    return undefined
+  }
+}
+
 export type MabibaseEnchantResult = {
   id: number
   title: string
