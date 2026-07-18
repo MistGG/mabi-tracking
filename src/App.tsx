@@ -238,9 +238,6 @@ export default function App() {
                 focusForm()
               }}
               onToggleSold={(id, sold) => updateEntry(id, { sold })}
-              onToggleUntracked={(id, untracked) =>
-                updateEntry(id, { untracked })
-              }
               onRelist={(entry) => {
                 setDraftItem(draftFromEntry(entry))
                 removeEntry(entry.id)

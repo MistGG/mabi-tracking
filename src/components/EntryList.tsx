@@ -23,7 +23,6 @@ type Props = {
   onRemove: (id: string) => void
   onSelectItem: (entry: IncomeEntry) => void
   onToggleSold: (id: string, sold: boolean) => void
-  onToggleUntracked: (id: string, untracked: boolean) => void
   onRelist: (entry: IncomeEntry) => void
 }
 
@@ -32,7 +31,6 @@ export function EntryList({
   onRemove,
   onSelectItem,
   onToggleSold,
-  onToggleUntracked,
   onRelist,
 }: Props) {
   const [visibleDays, setVisibleDays] = useState(INITIAL_VISIBLE_DAYS)
@@ -222,26 +220,6 @@ export function EntryList({
                               }
                             >
                               {row.sold ? 'Sold ✓' : 'Sold?'}
-                            </button>
-                            <button
-                              type="button"
-                              className={`btn ghost compact${
-                                row.untracked ? ' untracked-on' : ''
-                              }`}
-                              aria-pressed={row.untracked}
-                              onClick={() =>
-                                onToggleUntracked(
-                                  row.entry.id,
-                                  !row.untracked,
-                                )
-                              }
-                              title={
-                                row.untracked
-                                  ? 'Untracked — counts in all-time net, not Today/chart'
-                                  : 'Mark untracked for prior gold / bankroll'
-                              }
-                            >
-                              {row.untracked ? 'Untracked ✓' : 'Untracked?'}
                             </button>
                             <button
                               type="button"

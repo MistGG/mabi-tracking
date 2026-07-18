@@ -1022,12 +1022,6 @@
   background: var(--surface-muted);
 }
 
-.btn.ghost.untracked-on {
-  border-color: var(--gold);
-  color: var(--gold);
-  background: var(--surface-muted);
-}
-
 .ledger-row-pending td {
   color: var(--ink-soft);
 }
