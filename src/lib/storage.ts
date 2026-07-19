@@ -1,6 +1,7 @@
 import type { Expenditure, IncomeEntry } from '../types'
 import {
   EXPENDITURES_KEY,
+  EXPENDITURES_MINIMIZED_KEY,
   GOAL_AMOUNT_KEY,
   GOAL_MINIMIZED_KEY,
   GOLD_PICKUP_MINIMIZED_KEY,
@@ -41,6 +42,24 @@ export function loadExpenditures(): Expenditure[] {
 
 export function saveExpenditures(expenditures: Expenditure[]): void {
   localStorage.setItem(EXPENDITURES_KEY, JSON.stringify(expenditures))
+}
+
+export function loadExpendituresMinimized(): boolean {
+  try {
+    const raw = localStorage.getItem(EXPENDITURES_MINIMIZED_KEY)
+    if (raw === null) return false
+    return raw === 'true'
+  } catch {
+    return false
+  }
+}
+
+export function saveExpendituresMinimized(value: boolean): void {
+  try {
+    localStorage.setItem(EXPENDITURES_MINIMIZED_KEY, String(value))
+  } catch {
+    // ignore write failures
+  }
 }
 
 export function loadSoldByDefault(): boolean {

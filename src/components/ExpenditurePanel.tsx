@@ -11,6 +11,10 @@ import {
   uniqueDatesDesc,
   visibleDateSet,
 } from '../lib/dayWindow'
+import {
+  loadExpendituresMinimized,
+  saveExpendituresMinimized,
+} from '../lib/storage'
 import { LoadMoreDays } from './LoadMoreDays'
 
 type Props = {
@@ -29,6 +33,7 @@ export function ExpenditurePanel({
   const [date, setDate] = useState(todayIso())
   const [error, setError] = useState<string | null>(null)
   const [visibleDays, setVisibleDays] = useState(INITIAL_VISIBLE_DAYS)
+  const [minimized, setMinimized] = useState(loadExpendituresMinimized)
 
   useEffect(() => {
     const refreshStaleDate = () => {
@@ -44,6 +49,14 @@ export function ExpenditurePanel({
       document.removeEventListener('visibilitychange', onVisibility)
     }
   }, [])
+
+  function toggleMinimized() {
+    setMinimized((prev) => {
+      const next = !prev
+      saveExpendituresMinimized(next)
+      return next
+    })
+  }
 
   function handleSubmit(e: FormEvent) {
     e.preventDefault()
@@ -83,6 +96,11 @@ export function ExpenditurePanel({
     [expenditures],
   )
 
+  const totalSpent = useMemo(
+    () => expenditures.reduce((sum, item) => sum + item.amount, 0),
+    [expenditures],
+  )
+
   const allDates = useMemo(
     () => uniqueDatesDesc(sorted.map((item) => item.date)),
     [sorted],
@@ -99,88 +117,127 @@ export function ExpenditurePanel({
   )
 
   return (
-    <section className="panel expenditure-panel">
-      <header className="panel-header">
-        <h2>Expenditures</h2>
-        <p>Log gold spent outside sales. These reduce your net totals.</p>
+    <section
+      className={`panel expenditure-panel${
+        minimized ? ' expenditure-minimized' : ''
+      }`}
+    >
+      <header className="panel-header form-header-row">
+        <div>
+          <h2>Expenditures</h2>
+          {!minimized && (
+            <p>Log gold spent outside sales. These reduce your net totals.</p>
+          )}
+        </div>
+        <button
+          type="button"
+          className="btn ghost compact"
+          onClick={toggleMinimized}
+          aria-expanded={!minimized}
+          aria-controls="expenditure-body"
+        >
+          {minimized ? 'Expand' : 'Minimize'}
+        </button>
       </header>
 
-      <form className="expenditure-form" onSubmit={handleSubmit}>
-        <div className="expenditure-grid">
-          <div className="field expenditure-comment">
-            <label htmlFor="spend-comment">Comment</label>
-            <input
-              id="spend-comment"
-              type="text"
-              autoComplete="off"
-              placeholder="e.g. Dye ampule, passes"
-              value={comment}
-              onChange={(e) => setComment(e.target.value)}
-            />
-          </div>
-          <div className="field">
-            <label htmlFor="spend-amount">Spent</label>
-            <input
-              id="spend-amount"
-              type="text"
-              inputMode="decimal"
-              autoComplete="off"
-              placeholder="0"
-              value={amount}
-              onChange={(e) => setAmount(e.target.value)}
-            />
-          </div>
-          <div className="field">
-            <label htmlFor="spend-date">Date</label>
-            <input
-              id="spend-date"
-              type="date"
-              value={date}
-              onChange={(e) => setDate(e.target.value)}
-            />
-          </div>
+      {minimized ? (
+        <div id="expenditure-body" className="expenditure-compact">
+          {expenditures.length === 0 ? (
+            <p className="expenditure-compact-empty">
+              No spends logged. Expand to add one.
+            </p>
+          ) : (
+            <>
+              <strong className="expenditure-compact-total">
+                −{formatGold(totalSpent)}
+              </strong>
+              <span className="expenditure-compact-meta">
+                {expenditures.length} spend
+                {expenditures.length === 1 ? '' : 's'} logged
+              </span>
+            </>
+          )}
         </div>
-
-        {error && <p className="field-error">{error}</p>}
-
-        <button className="btn primary" type="submit">
-          Add expenditure
-        </button>
-      </form>
-
-      {sorted.length === 0 ? (
-        <p className="expenditure-empty">No expenditures logged yet.</p>
       ) : (
-        <>
-          <ul className="expenditure-list">
-            {visibleItems.map((item) => (
-              <li key={item.id} className="expenditure-row">
-                <div className="expenditure-row-main">
-                  <strong>{item.comment}</strong>
-                  <span className="expenditure-row-meta">
-                    {formatDisplayDate(item.date)}
-                  </span>
-                </div>
-                <strong className="expenditure-amount">
-                  −{formatGold(item.amount)}
-                </strong>
-                <button
-                  type="button"
-                  className="btn ghost compact danger"
-                  onClick={() => onRemove(item.id)}
-                >
-                  Remove
-                </button>
-              </li>
-            ))}
-          </ul>
+        <div id="expenditure-body">
+          <form className="expenditure-form" onSubmit={handleSubmit}>
+            <div className="expenditure-grid">
+              <div className="field expenditure-comment">
+                <label htmlFor="spend-comment">Comment</label>
+                <input
+                  id="spend-comment"
+                  type="text"
+                  autoComplete="off"
+                  placeholder="e.g. Dye ampule, passes"
+                  value={comment}
+                  onChange={(e) => setComment(e.target.value)}
+                />
+              </div>
+              <div className="field">
+                <label htmlFor="spend-amount">Spent</label>
+                <input
+                  id="spend-amount"
+                  type="text"
+                  inputMode="decimal"
+                  autoComplete="off"
+                  placeholder="0"
+                  value={amount}
+                  onChange={(e) => setAmount(e.target.value)}
+                />
+              </div>
+              <div className="field">
+                <label htmlFor="spend-date">Date</label>
+                <input
+                  id="spend-date"
+                  type="date"
+                  value={date}
+                  onChange={(e) => setDate(e.target.value)}
+                />
+              </div>
+            </div>
 
-          <LoadMoreDays
-            visibleDays={shownDays}
-            totalDays={totalDays}
-            onChange={setVisibleDays}
-          />
-        </>
+            {error && <p className="field-error">{error}</p>}
+
+            <button className="btn primary" type="submit">
+              Add expenditure
+            </button>
+          </form>
+
+          {sorted.length === 0 ? (
+            <p className="expenditure-empty">No expenditures logged yet.</p>
+          ) : (
+            <>
+              <ul className="expenditure-list">
+                {visibleItems.map((item) => (
+                  <li key={item.id} className="expenditure-row">
+                    <div className="expenditure-row-main">
+                      <strong>{item.comment}</strong>
+                      <span className="expenditure-row-meta">
+                        {formatDisplayDate(item.date)}
+                      </span>
+                    </div>
+                    <strong className="expenditure-amount">
+                      −{formatGold(item.amount)}
+                    </strong>
+                    <button
+                      type="button"
+                      className="btn ghost compact danger"
+                      onClick={() => onRemove(item.id)}
+                    >
+                      Remove
+                    </button>
+                  </li>
+                ))}
+              </ul>
+
+              <LoadMoreDays
+                visibleDays={shownDays}
+                totalDays={totalDays}
+                onChange={setVisibleDays}
+              />
+            </>
+          )}
+        </div>
       )}
     </section>
   )
