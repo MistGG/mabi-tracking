@@ -12,7 +12,7 @@ export type ContentActivity = {
 }
 
 export type ContentHistoryPoint = {
-  /** Daily: YYYY-MM-DD. Weekly: Monday YYYY-MM-DD. */
+  /** Daily: YYYY-MM-DD. Weekly: Thursday YYYY-MM-DD. */
   key: string
   /** Cleared runs / planned runs for that period, 0–100. */
   percent: number
@@ -22,7 +22,7 @@ export type ContentState = {
   activities: ContentActivity[]
   /** YYYY-MM-DD for the active daily period. */
   dailyKey: string
-  /** Monday YYYY-MM-DD for the active weekly period. */
+  /** Thursday YYYY-MM-DD for the active weekly period. */
   weeklyKey: string
   dailyHistory: ContentHistoryPoint[]
   weeklyHistory: ContentHistoryPoint[]
@@ -39,16 +39,16 @@ export function dateKey(date = new Date()): string {
   return `${date.getFullYear()}-${pad2(date.getMonth() + 1)}-${pad2(date.getDate())}`
 }
 
-/** Local Monday of the week containing `date`. */
+/** Local Thursday that starts the content week containing `date`. */
 export function weekKey(date = new Date()): string {
-  const day = date.getDay()
-  const diff = day === 0 ? -6 : 1 - day
-  const monday = new Date(
+  const day = date.getDay() // 0 Sun … 4 Thu … 6 Sat
+  const daysSinceThursday = (day - 4 + 7) % 7
+  const thursday = new Date(
     date.getFullYear(),
     date.getMonth(),
-    date.getDate() + diff,
+    date.getDate() - daysSinceThursday,
   )
-  return dateKey(monday)
+  return dateKey(thursday)
 }
 
 export function emptyContentState(): ContentState {
